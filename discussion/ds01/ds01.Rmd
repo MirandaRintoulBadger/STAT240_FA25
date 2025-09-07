@@ -1,0 +1,57 @@
+---
+title: "Discussion 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# We will usually provide a chunk like this for you. You shouldn't change this chunk until and unless you know what you are doing.
+
+# This is setting "global chunk options"; "global" meaning applying to every chunk in the rest of the document.
+
+#   echo = TRUE causes every chunk to appear in the knitted file.
+#   warning = FALSE causes warning messages (different than errors) to NOT appear in the knitted file.
+#   message = FALSE causes other messages (like those from loading packages) to NOT appear in the knitted file.
+
+# Notice include = FALSE as a chunk option at the top of this chunk in line 6. This means that neither this chunk nor its output will appear in the knitted file.
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds01`.
+
+The goal of today's discussion will be to review the syllabus, think about your learning goals for STAT 240, and learn how to knit an Rmarkdown file to html.
+
+
+# Problem 1
+
+What are the dates for the first midterm, second midterm, and final exam for this course? As a reminder, dates or times for the final exam are rarely offered and require extenuating or emergency circumstances.
+
+
+# Problem 2
+
+What are your goals for taking this course and what are you hoping to learn?
+
+
+# Problem 3
+
+Use the following R chunk to compute three squared plus five.
+
+You may find [Section 2.3.2 of the textbook ](https://bwu62.github.io/stat240-revamp/rstudio-intro.html#r-math) helpful.
+
+```{r}
+# Write your code in here!
+
+```
+
+Ensure that the answer is appearing in the knitted file correctly. Do not just type the answer, write the code to get the answer.
+
+
+# Submission
+
+When you have answered the above questions, please knit this file and submit **both** the R Markdown file (.Rmd) and the knitted html file (.html).
+
+We will ask for both files for every assignment in this course.
+
+We will grade directly from the .html file, so make sure you are satisfied with how it looks before you submit. We ask for your .Rmd as a backup in case your .html file has errors in it. 
