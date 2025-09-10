@@ -37,7 +37,7 @@ X
 ### Numeric objects
 
 ```{r}
-class(myFavoriteNumber)
+class(my_favorite_number)
 
 class(pi)
 ```
