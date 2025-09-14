@@ -66,7 +66,7 @@ tibble(
 ### STAT240/data/ contains the data file
 ### STAT240/discussion/ds02/ is your working directory.
 
-monona <- read_csv("../../data/lake-monona-winters-2024.csv")
+monona <- read_csv("../../data/lake-monona-winters-2025.csv")
 
 # This command should print out the first six rows of the monona winters dataset, starting with 1855-1856.
 
