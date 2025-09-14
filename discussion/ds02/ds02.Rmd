@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
 # Preliminaries
 
 - This file should be in `STAT240/discussion/ds02`.
+- The file `lake-monona-winters-2025.csv` should be in `STAT240/data`.
 
 The goal of today's discussion will be to break R in as many ways as possible!  We want to become comfortable with reading, understanding, and eventually debugging error messages.
 
