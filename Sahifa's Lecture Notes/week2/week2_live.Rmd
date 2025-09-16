@@ -1,0 +1,311 @@
+---
+title: "week2_live"
+output: html_document
+date: "2025-09-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE, warning = T)
+```
+
+# Week 2 lecture notes
+
+### Mathematical operation:
+
+-   add: +
+-   subtract: -
+-   multiply: *
+-   divide: / (forward slash)
+-   raised to: ^, **
+
+```{r}
+3+2
+3-2
+3*2
+1:5
+3/2
+3^2
+3**2
+```
+
+### Variables:
+
+anything you define using the '=' or '<-' sign creates a variable in the environment
+
+```{r}
+x = 12
+x <- 12
+X = 12
+x = 3
+```
+
+Rules for naming variables: 
+
+- letters or alphabets 
+
+- you can use numbers in the name, but it should always come after the letters
+
+```{r}
+1a = 2
+a1 = 2
+A1 = 2
+```
+
+-   you can use symbols like '\_', no'-' because this is the sign for subtract, '.'
+
+```{r}
+a1_ = 2
+a1. = 2 
+a2- = 2
+a2 # = 2
+```
+
+Types of variables:
+
+-   numeric: var using numbers
+
+```{r}
+class(x)
+class(a1)
+```
+
+-   characters:
+
+```{r}
+
+x = X # here it reassigns the value of x with the value of a predefined var X
+# sahifa = -1
+myName = sahifa
+myName = "Sahifa"
+food = 'Salad'
+class(myName)
+```
+
+```{r}
+eq = 2+2
+log_2 = log(2) 
+eq = "2+2"
+class(eq)
+```
+
+mathematical operations with character var:
+
+```{r}
+year = " 2025"
+yr = 2025
+
+year + 2
+yr + 2
+year + "2"
+yr + "2"
+c(year, "2")
+
+?c
+```
+
+
+### Logical variable:
+
+```{r}
+t = TRUE
+f = FALSE
+```
+
+
+Logical operations: 
+
+- >, <, == equality, != not equal, <=, >=
+
+```{r}
+x
+x < 1
+x >= 1
+x != 3
+x == 3
+```
+
+can we do mathematical operation with T or F
+
+```{r}
+T + 2
+F + 2
+```
+
+Yes, because, R considers T as 1 and F as 0.
+
+```{r}
+NA
+NA + 1
+log(NA)
+
+vector = c(1, 2, 3, 4, NA, NA)
+sum(vector, na.rm = T)
+```
+
+Will NA work with logical operators, espexially with == and !=
+
+```{r}
+z = NA
+z == NA
+is.na(z)
+is.na(vector)
+c()
+```
+
+
+# Functions
+
+name_of_function(arg1= , arg2 = )
+for help: ?name_of_function
+
+```{r}
+?sum(1,2)
+sum(1, 2)
+mean(c(1, 2, 3, 4))
+plot(1:5, 2:6, type = "l")
+```
+
+
+# Vectors:
+
+- c(): combine function
+
+Note: c converts the vector to character even if atleast one of the variable is a character, numeric is most of it is numbers and logical variables, its logical iff you have all logical var.
+
+```{r}
+c(1, 2) + c(3, 4)
+
+c(1, 2, 3, 3000)
+x = c(1, 2, 2+2, "2+2", T, NA) +1
+x
+class(x)
+
+y = c(T, 1, 2, 200, NA)
+y
+
+z = c(T, F, NA)
+```
+
+
+- using the ':' to create numeric vectors, creating sequences of numbers with a difference of 1 or -1 (depending on the direction specified)
+
+```{r}
+1:20
+pi
+pi:20
+-1:-100
+-1:10
+10:1
+exp(1):10
+sqrt(2):5
+
+"2025":2027 # if you have numbers in character format, : still works
+
+"apple":1
+
+T:10
+```
+
+- seq(): this will create numeric vectors 
+
+```{r}
+?seq
+seq(2, 1,-1)
+seq(by = -2, to = 2, from = 15)
+seq(15, 2, -2)
+seq(15, 2, length.out = 7)
+```
+
+## Vector Operations
+
+#### Mathematical operations
+
+```{r}
+x = 12:20
+x
+
+y = 2:10
+y
+
+x+y
+# works with all mathematical operation
+```
+
+```{r}
+X = 1:5
+Y = 1:9
+X
+Y
+X+Y
+
+Y+X
+
+# it works with all mathematical vectors
+```
+
+```{r}
+x
+c(11,x)
+c(x, 11)
+x[10]=c(11)
+x[10] = 11
+x
+```
+
+Comparing two vectors to see the presence of one (second) in other (first)
+```{r}
+X
+X >= c(2, 3)
+X == c(1, 2, 3, 5)
+# all of these only check for the presence of the first element in the second vector
+```
+For cross-checking with a list, we use the operator `%in% `
+
+```{r}
+X
+X %in% c(1, 3, 5)
+Y = c("Banana", "Apple", "Grapes")
+Y == "Strawberry"
+Y == c("Banana", "Apple", "Grapes")
+Y == c("Grapes", "Strawberry")
+Y %in% c("Apple", "Strawberry")
+Y %in% c("Apple", "Banana")
+```
+
+# Dataframes: 
+
+```{r}
+# install.packages("tidyverse") # only one time use
+library("tidyverse") # run every time you open R-Studio
+```
+
+You want to define a new dataframe, we use function `tibble()`
+
+```{r}
+data = tibble(first_5_num = 1:5, alphabets = c("a", "b", "c", "d", "e"), check_primes = first_5_num %in% c(2, 3, 5), check_vowels = alphabets %in% c("a", "e"))
+
+data$alphabets
+data
+data[2]
+data[1, 2]
+```
+
+### `dim()`
+
+```{r}
+dim(data)
+glimpse(data)
+head(data, 2)
+tail(data, 2)
+```
+
+### Calling a data set
+
+```{r}
+mendota = read_csv("../../data/lake-mendota-winters-2025.csv")
+```
+
+
+
+
+
