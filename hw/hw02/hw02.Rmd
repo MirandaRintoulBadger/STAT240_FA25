@@ -85,7 +85,7 @@ This problem refers to the graph created in problem 3 above. Its goal is to disp
 The below chunk (which is hidden in the knitted file) reads in `lake-mendota-winters-2024.csv` into a new object called `mendota`.
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
-mendota <- read_csv("../../data/lake-mendota-winters-2024.csv")
+mendota <- read_csv("../../data/lake-mendota-winters-2025.csv")
 ```
 
 The code below uses both datasets to create a single plot of year vs duration for both lakes.  
