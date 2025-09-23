@@ -1,0 +1,159 @@
+---
+title: "week3_live"
+output: html_document
+date: "2025-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = T, warning = T)
+library(tidyverse)
+```
+
+```{r}
+#plot() #base R function
+```
+
+# GGplot
+
+Loading the mendota dataset
+
+```{r}
+mendota <- read.csv("../../data/lake-mendota-winters-2025.csv")
+#view(mendota)
+```
+
+## Layers of ggplot
+
+Lets say we want to make a graph for the duration vs year1 (y vs x) in ggplot.
+
+```{r}
+?ggplot
+# layer 1
+ggplot(data = mendota, mapping = aes(x = year1, y = duration))
+
+# ggplot(mapping = aes(x= mendota$year1, y= mendota$duration))
+```
+
+## geom_functions: these are function sin ggolot that defines the type of graph that we want to plot
+
+- geom_point()
+- geom_line()
+- geom_histogram()
+
+
+
+```{r}
+# layer 2
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_point()
+
+# layer 3
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_point(col = "red", size = 4)
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_line(col = "pink") +
+  geom_point(col = "red", size = 4) 
+
+
+ggplot(data = mendota, mapping = aes(y = duration)) +
+  geom_histogram(col = "pink")
+
+
+ggplot() +
+  geom_line(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_point()
+```
+
+## Types of aesthetics:
+
+Global vs Local
+
+```{r}
+# global aesthetic, anything put into ggplot is a global; aesthetic becuase it gets applied to all of the layers following that
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_line(col = "pink") +
+  geom_point(col = "red", size = 4) 
+
+
+# Local aesthetic, anything you put inside specific geom_functions 
+ggplot() +
+  geom_line(data = mendota, mapping = aes(x = year1, y = duration), col = "pink") +
+  geom_point(col = "red", size = 4) +
+  geom_smooth(data = mendota, mapping = aes(x = year1, y = duration)) # creates a trendline
+```
+
+Variable vs constant:
+
+```{r}
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_line(col = "pink") +
+  geom_point(col = "skyblue", size = 4) 
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration, col = as.factor(intervals))) +
+  geom_line() +
+  geom_point() 
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration, col = as.factor(decade))) +
+  geom_line() +
+  geom_point() 
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_line() +
+  geom_point(mapping = aes(col = as.factor(intervals)), size = 4) 
+```
+
+Type of plots or geom_functions:
+
+- Two variable plots: geom_point(), geom_line(), geom_smooth(), geom_segment(), geom_pointrange()
+
+
+```{r}
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_point(col = "red") +
+  geom_smooth(method = "lm") # trendline
+
+ggplot(data = mendota, mapping = aes(x = year1, y = duration)) +
+  geom_point(col = "red", shape = 21) +
+  geom_smooth(method = "lm", se = F)
+```
+
+
+- One variable plots: geom_histogram(), geom_density(), geom_bar(), geom_col(), geom_boxplot()
+
+
+```{r}
+# geom_histogram uses continuous r.v
+
+ggplot(mendota, aes(x = duration)) + geom_histogram()
+
+ggplot(mendota, aes(x = duration)) + geom_histogram(binwidth = 30)
+
+ggplot(mendota, aes(x = duration)) + geom_histogram(bins = 20)
+
+ggplot(mendota, aes(x = duration)) + geom_histogram(bins = 20, col = "blue", fill = "skyblue")
+```
+
+
+```{r}
+ggplot(mendota, aes(x = decade)) +
+  geom_bar()
+
+ggplot(mendota, aes(intervals)) +
+  geom_bar(col = "red", fill = "green")
+```
+
+```{r}
+ggplot(mendota, aes(duration)) +
+  geom_density(col = "red", fill = "purple")
+```
+
+```{r}
+ggplot(mendota, aes(duration)) +
+  geom_histogram( fill ="red") +
+  geom_density(fill = "green", alpha = 0.1)
+
+ggplot(mendota, aes(duration)) +
+  geom_histogra
