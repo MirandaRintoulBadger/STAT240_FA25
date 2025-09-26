@@ -1,0 +1,113 @@
+---
+title: "Section 5: dplyr Lecture Solutions"
+date: "2024-09-11"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+```
+
+## Lecture questions
+
+Let's spend some time in lecture working through some more complicated `dplyr` questions.  I encourage you to work together and talk with your neighbors!
+
+First, read in the weather data and take a few minutes to investigate the dataset.
+
+```{r, message=FALSE}
+library(tidyverse)
+
+official <- read_csv("../../data/madison-weather-official-1869-2023.csv") %>% 
+  mutate(year = year(date),
+         month = month(date, label = TRUE),
+         day = day(date))
+```
+
+**Average Annual Temperature**
+
+Summarize the data to obtain the average temperature (`tavg`) per year. Then, make an effective plot of this data to show patterns over time and variation around the main pattern.  
+
+(Hints: 
+What do we do with the rows where `tavg` is missing? 
+Our current dataset is one row per date; we need to summarize that to one row per year.)
+
+```{r}
+official %>%
+  drop_na(tavg) %>%
+  group_by(year) %>%
+  summarize(yearly_avg = mean(tavg)) %>%
+
+  ggplot(aes(x = year, y = yearly_avg)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+```
+
+
+**Daily Temperature Records**
+
+For each of the 366 unique dates of the year, find the historical date which had the highest maximum temperature on that day of the year (e.g. What year was the hottest May 16?). There may be ties, which will lead to slightly more than 366 rows.
+
+(Hints:
+We will have to evaluate which row in `official` has the highest `tmax` within each combination of `month` and `day`.  We can do that with `group_by` leading into `slice_max`.
+)
+
+```{r}
+official %>%
+  group_by(month, day) %>%
+  slice_max(tmax, n = 1) %>%
+  relocate(month, day, year, tmax)
+```
+
+
+**30-year Period**
+
+Meteorologists often determine weather norms by averaging over a 30-year period. Create a new variable which indicates what 30-year period a given day is part of; starting with 1871-1900, then 1901-1930, up to 1991-2020. You can exclude years before 1871 and after 2020.
+
+```{r}
+official <- official %>%
+  mutate(period30 = case_when(year > 1870 & year <= 1900 ~ "1871-1900",
+                              year > 1900 & year <= 1930 ~ "1901-1930",
+                              year > 1930 & year <= 1960 ~ "1931-1960",
+                              year > 1960 & year <= 1990 ~ "1961-1990",
+                              year > 1990 & year <= 2020 ~ "1991-2020"))
+```
+
+
+**Temperature by Period**
+
+Then, with that 30-year-period variable you just created, calculate within each of the twelve months within each period (e.g. 1 row for all Januarys in 1871-1900, 1 row for all Februarys in 1871-1900… for each month, for each period) the average, maximum, and minimum of `tavg`.
+
+(Take a moment to make sure you understand what the question is asking for. We have 5 periods and there are twelve unique months in each period (e.g. January 1871 is lumped together with every other January from 1871 - 1900) so we will get 60 rows. We’ll also need to only keep those rows between 1871 and 2020.)
+
+```{r}
+official %>%
+  drop_na(period30, tavg) %>%
+  group_by(month, period30) %>%
+  summarize(period_avg = mean(tavg),
+            period_max = max(tavg),
+            period_min = min(tavg))
+```
+
+
+**Days with Precipitation**
+
+Make a summary table which shows the proportion of days which had any precipitation in each 30-year period + month combination.
+
+```{r}
+yr30_precip <- official %>%
+  drop_na(period30, prcp) %>%
+  group_by(month, period30) %>%
+  summarize(precip_days = sum(prcp > 0),
+            precip_prop = precip_days / n())
+```
+
+
+Create a column graph of the percentage of days with precipitation in each 30-year period. Add the `facet_wrap` code to your graph to make a separate panel based on month.
+
+```{r}
+yr30_precip %>%
+  ggplot(aes(x = period30, y = precip_prop)) +
+  geom_col() +
+  facet_wrap(vars(month))
+```
