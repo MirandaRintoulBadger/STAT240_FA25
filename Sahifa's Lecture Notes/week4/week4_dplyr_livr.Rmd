@@ -92,7 +92,120 @@ grocery_prices_new %>% arrange(desc(price_per_item))
 
 ```{r}
 grocery_prices_new %>% filter(cost_after_tax>1) %>% arrange(cost_after_tax) %>% relocate(cost_after_tax)
+
+grocery_prices_new %>% filter(type == "fruit")
+
+grocery_prices_new %>% filter(type == "vegetable")
+
+grocery_prices_new %>% filter(is.na(price_per_item))
+
+grocery_prices_new %>% filter(type == "vegetable")
 ```
+
+
+```{r}
+tibble(Students = c("Ashley", "Ryan", "Geet", "Ayan", "Brian"), letter_grade = c("A", "B", "AB", NA, "A"), HW = c(90, 85, 80, 90, 99), DIS = c(89, 89, NA, 75, 90))
+```
+
+- `drop_na()`: this function scans whole dataset and deletes all the rows that have NA inside, but if you mention the column name, it only deletes rows that have NA in that specific column.
+
+```{r}
+tibble(Students = c("Ashley", "Ryan", "Geet", "Ayan", "Brian"), letter_grade = c("A", "B", "AB", NA, "A"), HW = c(90, 85, 80, 90, 99), DIS = c(89, 89, NA, 75, 90)) %>% 
+  filter(is.na(letter_grade) | is.na(DIS))
+
+tibble(Students = c("Ashley", "Ryan", "Geet", "Ayan", "Brian"), letter_grade = c("A", "B", "AB", NA, "A"), HW = c(90, 85, 80, 90, 99), DIS = c(89, 89, NA, 75, 90)) %>% 
+  drop_na()
+
+tibble(Students = c("Ashley", "Ryan", "Geet", "Ayan", "Brian"), letter_grade = c("A", "B", "AB", NA, "A"), HW = c(90, 85, 80, 90, 99), DIS = c(89, 89, NA, 75, 90)) %>% 
+  drop_na(letter_grade)
+```
+
+
+- `summarize()`
+
+
+```{r}
+mean(grocery_prices$price)
+```
+
+```{r}
+grocery_prices_new %>% summarize(mean = mean(price_per_item), sd = sd(price_per_item), median = median(price_per_item), total_price = sum(cost_after_tax), sqrt = sqrt(cost_after_tax))
+```
+
+- `group_by()`: this function creates groups in your dataset, that is pre-existing or using one simple logical argument
+
+```{r}
+grocery_prices_new %>% group_by(type) %>% summarise(total_price_per_item = sum(price_per_item), total_tax = sum(tax), total_cost = sum(cost_after_tax))
+
+grocery_prices_new %>% group_by(price_per_item<1) %>% summarise(total_price_per_item = sum(price_per_item), total_tax = sum(tax), total_cost = sum(cost_after_tax))
+```
+```{r}
+grocery_prices_new %>% group_by(type) %>% mutate(total_tax = sum(tax), total_cost = sum(cost_after_tax)) %>% relocate(total_tax, total_cost)
+
+```
+
+- `n()`: gives total number of rows in the set
+
+```{r}
+grocery_prices_new %>% summarise(n = n())
+
+grocery_prices_new %>% group_by(type) %>% summarise(n = n())
+```
+
+- `count()`: counts the number of rows in each group in the given column
+
+```{r}
+grocery_prices_new %>% count(type)
+```
+
+- `slice_min()` and `slice_max()`: gives you rows that have the min or max in the column specified. You can multiple rows.
+
+
+```{r}
+grocery_prices_new %>% slice_max(cost_after_tax, n = 3)
+
+grocery_prices_new %>% slice_max(cost_after_tax, n = 2)
+
+grocery_prices_new %>% slice_min(cost_after_tax, n = 2)
+
+grocery_prices_new %>% group_by(type) %>%  slice_max(cost_after_tax, n = 2)
+
+grocery_prices_new %>% group_by(item) %>%  slice_max(cost_after_tax, n = 2)
+
+grocery_prices_new %>% group_by(type, cost_after_tax>2) %>%  slice_max(cost_after_tax, n = 2)
+
+```
+
+
+```{r}
+grocery_prices_new  %>% group_by(type) %>% summarise(n = n(), max_cost = max(cost_after_tax), min_cost = min(cost_after_tax))
+```
+
+```{r}
+students = tibble(
+  name = c("A", "B", "C", "D", "E", "F"),
+  age = 17:22
+) %>% 
+  slice_sample(n = 6)
+
+students
+```
+
+- `case_when()`: this is the function that defines customize groups in a seperate column inside mutate().
+
+```{r}
+students %>% 
+  mutate(legalStatus = case_when(
+  age >= 21 ~ "Can vote and drink",
+  age >= 18 & age <= 20 ~ "Can vote, can't drink",
+  age <= 17 ~ "Cannot vote nor drink"
+  ))
+```
+
+
+
+
+
 
 
 
