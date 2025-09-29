@@ -1,0 +1,105 @@
+---
+title: "week4_live"
+output: html_document
+date: "2025-09-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = T, warning = T)
+
+library(tidyverse)
+
+# install.packages("magrittr")
+library(magrittr)
+```
+
+# Dplyr
+
+## Pipe operator: `%>%`, shortcut `mac user cmd+shift+m` and `windows users ctrl+shift+m`
+
+f(x), f is a function and x is the input, x %>% f()
+f(x,y), x %>% f(y) = f(x, y)
+f(g(x),y),  x %>% g() %>% f(y) = g(x) %>% f(y) = f(g(x),y)
+
+$$\sqrt{3x^2+5}$$
+
+```{r}
+x = 1
+
+sqrt(3*1+5)
+
+x %>% raise_to_power(2) %>% multiply_by(3) %>% add(5) %>% raise_to_power(1/2)
+```
+
+```{r}
+sqrt(add(divide_by(30, 10), 6))
+
+30 %>% divide_by(10) %>% add(6) %>% sqrt()
+```
+
+# dataset
+
+```{r}
+grocery_list = read_csv("../../data/grocery-list.csv")
+grocery_prices = read_csv("../../data/grocery-prices.csv")
+```
+
+# column editors
+
+- `mutate()`: adding new columns in your dataset 
+
+```{r}
+grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2))
+```
+
+- `select()`: selects a specific column in the dataset
+
+```{r}
+select(mutate(grocery_prices, "tax" = price*0.05,"total_cost" = round(price+tax,2) ), item, total_cost)
+
+grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2)) %>% select(item, total_cost) %>% mutate(redundant_col = 1)
+```
+
+- `relocate()`: moves columns around
+
+```{r}
+grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2)) %>% relocate(type, item, total_cost)
+
+grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2)) %>% relocate(type, .before= price)
+
+grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2)) %>% relocate(price, tax, total_cost, .after= item)
+```
+
+- `rename()`: renaming columns, new_name = old_name
+
+```{r}
+grocery_prices_new = grocery_prices %>% mutate("tax" = price*0.05, "total_cost" = round(price+tax,2)) %>% rename("price_per_item"= price, "cost_after_tax" = total_cost)
+```
+
+## Row editors
+
+- `arrange()`: arranges rows using a reference
+
+```{r}
+grocery_prices_new %>% arrange(price_per_item)
+
+grocery_prices_new %>% arrange(-price_per_item)
+
+grocery_prices_new %>% arrange(desc(price_per_item))
+```
+
+- `filter()`: filters out rows depending on the conditions that you give
+
+```{r}
+grocery_prices_new %>% filter(cost_after_tax>1) %>% arrange(cost_after_tax) %>% relocate(cost_after_tax)
+```
+
+
+
+
+
+
+
+
+
+
