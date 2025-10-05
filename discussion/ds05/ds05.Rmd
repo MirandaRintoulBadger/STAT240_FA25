@@ -1,0 +1,129 @@
+---
+title: "Discussion 5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+library(tidyverse)
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds05`.
+- The files `suspects.csv`, `alibis.csv`, and `clothing.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to practice using tidyverse `join` and `pivot` commands to manipulate and re-shape data.  At the end, there will be some time to prepare for the first midterm.
+
+
+# Problem 1
+#### (approx. 20 minutes)
+
+The Bucky Badger statue on Bascom Hill has been stolen!  Several groups across the university have conducted investigations into the theft, but their findings still need to be unified.
+
+- `suspects.csv` is a list of the suspects with a motive. Each suspect has a basic physical description and a six-digit identifier.
+- `alibis.csv` records which suspects had a legitimate alibi on the night of the theft.
+- `clothing.csv` is a database from security camera footage that records the clothing of several passers-by in the area.  Not all rows correspond to a suspect with a motive.
+
+```{r}
+suspects <- read_csv("suspects.csv")
+alibis <- read_csv("alibis.csv")
+clothing <- read_csv("clothing.csv")
+```
+
+(a) Use a *filtering join* on `suspects` and `alibis` to remove any suspects with an alibi.  Save the resulting dataframe.
+
+(b) Use a *mutating join* on `clothing` and the result of part (a) to match the suspects' physical descriptions and clothing.  You should only keep the rows containing possible suspects, and you should keep as many columns as possible.  Save the resulting dataframe.
+
+(c) An eyewitness provided the following description of the thief:
+
+"The thief is an older, taller guy.  His facial hair was dark, but I couldn't tell if it was black or brown.  He either has a short haircut or was wearing a cap." 
+
+Using the dataset you made in (b), use `mutate` and `case_when` to create a new column that indicates whether each suspect matches the eyewitness' description.  You'll need to combine multiple logical statements to account for the full description.
+
+
+# Problem 2
+#### (approx. 15 minutes)
+
+The code below, which is hidden in the final .html, creates five dataframes containing the names and dates of birth of children from several families.  Run the chunk to get the five dataframes into your environment, then minimize the R chunk with the small arrow on the left.
+
+Open the dataframes in a new Rstudio tab with the `View` command or by clicking on the entry in your environment.
+
+```{r, echo = FALSE}
+families <- tibble(
+  family_name = c("Rosemond", "Martinez", "Chen", "Barnes", "Schmid",
+                   "Rosemond", "Chen", "Barnes", "Schmid"),
+  birth_order = c(rep("first", 5), rep("second", 4)),
+  dob = c("1998-11-26", "1996-06-22", "2002-07-11", "2004-10-10",
+           "2000-12-05", "2000-01-29", "2004-04-05", "2009-08-27",
+           "2005-02-28"),
+  name = c("Susan", "Mark", "Sam", "Craig", "Parker",
+            "Jose", "Seth", "Khai", "Gracie")
+)
+
+newdata_A <- tibble(
+  family_name = c("Rosemond", "Martinez", "Chen", "Barnes", "Schmid"),
+  dob_first = c("1998-11-26", "1996-06-22", "2002-07-11",
+                "2004-10-10", "2000-12-05"),
+  dob_second = c("2000-01-29", NA, "2004-04-05",
+                 "2009-08-27","2005-02-28"),
+  name_first = c("Susan", "Mark", "Sam", "Craig", "Parker"),
+  name_second = c("Jose", NA, "Seth", "Khai", "Gracie")
+)
+
+newdata_B <- tibble(
+  family_name = c("Barnes", "Chen", "Martinez", "Rosemond", "Schmid"),
+  number_of_children = c(2, 2, 1, 2, 2)
+)
+
+newdata_C <- tibble(
+  family_name = c("Rosemond", "Martinez", "Chen", "Barnes", "Schmid",
+                   "Rosemond", "Chen", "Barnes", "Schmid"),
+  birth_order = c(rep("first", 5), rep("second", 4)),
+  birth_year = c(1998, 1996, 2002, 2004, 2000, 2000, 2004, 2009, 2005),
+  birth_month = c(11, 6, 7, 10, 12, 1, 4, 8, 2),
+  birth_day = c(26, 22, 11, 10, 5, 29, 5, 27, 28),
+  name = c("Susan", "Mark", "Sam", "Craig", "Parker",
+            "Jose", "Seth", "Khai", "Gracie")
+)
+
+newdata_D <- tibble(
+  family_name = c("Rosemond", "Rosemond", "Martinez", "Martinez",
+                  "Chen", "Chen", "Barnes", "Barnes", "Schmid", "Schmid",
+                  "Rosemond", "Rosemond", "Chen", "Chen", "Barnes",
+                  "Barnes", "Schmid", "Schmid"),
+  birth_order = c(rep("first", 10), rep("second", 8)),
+  record_type = rep(c("dob", "name"), 9),
+  value = c("1998-11-26", "Susan", "1996-06-22", "Mark",
+            "2002-07-11", "Sam", "2004-10-10", "Craig",
+            "2000-12-05", "Parker", "2000-01-29", "Jose",
+            "2004-04-05", "Seth", "2009-08-27", "Khai",
+            "2005-02-28", "Gracie")
+)
+
+```
+
+The base dataframe, `families`, has a row for each child in five different families.  There is a column for family name, birth order of the child, and the child's date of birth and name.
+
+The other four dataframes, labeled `newdata` A through D, are the result of manipulating the `families` data with `dplyr` commands.
+
+- One dataframe was created with `pivot_longer(families)`
+
+- One dataframe was created with `pivot_wider(families)`
+
+- One dataframe was created without pivoting, using summary tools we already know
+
+- One dataframe was created without pivoting, using tools we have not covered in this class
+
+Match the four new dataframes to how they were created.  If there is time, try to recreate the code used to produce them (except the fourth one, which uses tools from outside the class).
+
+
+# Midterm 1: Friday, October 10
+
+Use the remaining time in discussion to work on writing your cheat sheet for the first midterm.  You can bring a standard sheet of paper with anything you want written on both sides, and you are welcome to work with others to decide what you want to put on your sheet.
+
+The first midterm will cover everything from the R unit of STAT 240: homeworks 1-4 and discussions 2-5.
+
+
