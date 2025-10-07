@@ -1,0 +1,19 @@
+---
+title: "week6_live_probability"
+output: html_document
+date: "2025-10-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+$\sqrt{x^2 - 5}$
+
+$\log{2x + x^{-5}}$
+
+Whatever text goes here $\frac{numerator}{denominator}$ the equation appears beside it
+
+$$\frac{-2x}{x^2-9} $$
+
+$$P_x$$
