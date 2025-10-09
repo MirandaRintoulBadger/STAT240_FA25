@@ -55,7 +55,7 @@ sum(a)
 <span style="color:#5858d0">  This command will return 1 numeric element(s). </span>
 
 ```{r, class.source="soln", class.output="soln"}
-sum(a + c)
+sum(a * c)
 ```
 
 (d) `a + b`
