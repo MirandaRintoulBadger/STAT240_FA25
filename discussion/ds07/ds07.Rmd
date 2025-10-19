@@ -1,0 +1,118 @@
+---
+title: "Discussion 7"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds07`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to get familiar with the normal distribtuion.  You'll have a chance to practice standardization and also use R to find different normal probabilities.  The last problem will cover the Central Limit Theorem and how it applies to the distribution of the sample mean.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+(a) Many real-life processes follow an approximately normal shape.  Match the six descriptions below to the six normal parameterizations that make the most sense for the given units.
+
+Description choices:
+
+- I: Test scores out of 100
+- II: Driving time from Madison to Chicago, in hours
+- III: Energy in a footlong Subway sandwich, in calories
+- IV: Annual salary of entry-level workers, in dollars
+- V: Length of human pregnancy, in days
+- VI: Amount of sleep per night, in hours
+
+Normal parameterization choices (mean, sd):
+
+- A: $N(905, 120)$
+- B: $N(80, 4.5)$
+- C: $N(270, 12)$
+- D: $N(3, 0.26)$
+- E: $N(6.5, 1.2)$
+- F: $N(50000, 9500)$
+
+(b) Below is a list of eight different values from different normal curves, including the ones in (a).  Using standardization, create four pairs of matching values based on what z-score they represent.
+
+- A value that is 1.5 standard deviations below average
+- A z-score of 0.8
+- Sleeping 6 hours in a night
+- The 6.7th percentile of calories in a Subway sandwich
+- A pregnancy that lasts 279.6 days
+- Taking 3 hours and 20 minutes to drive from Madison to Chicago
+- An entry-level salary that is below 10% of all other entry-level salaries
+- Getting a test score of 78.1
+
+
+# Problem 2
+#### (approx. 15 minutes)
+
+In the US, men's heights are normally distributed with mean 70 inches and standard deviation 3.  Women's heights are normally distributed with mean 64 inches and standard deviation 2.5.  Calculate the probability of each of the following events.
+
+(a) Six US men are chosen at random, and exactly two of them have to duck under a 72-inch tall doorway.
+
+(b) A randomly chosen woman is taller than a man who is at the 30th percentile for height.
+
+(c) A randomly chosen man is shorter than 170 centimeters.
+
+- (c.i) First, complete this problem by converting 170 cm to inches.
+
+- (c.ii) Next, complete this problem by converting the men's height distribution to centimeters, then comparing it to the value 170 directly.  Verify that you get the same answer as before.
+
+
+# Problem 3
+#### (approx. 15 minutes)
+
+Your TA will record the ages of everyone in discussion.  Save these values under the `ages` vector below, and find the average age of all of the discussion participants.  When creating the vector, you might find it useful to use the `rep()` function.
+
+```{r, eval = F}
+#ages <-
+#mean(ages)
+```
+
+The code below samples 10 points from the `ages` vector and finds the sample mean of those 10 observations.  It repeats this process for 10000 runs, and saves the 10000 theoretical sample means in a dataframe called `samp_means`.
+
+```{r, eval = F}
+set.seed(240)
+
+iterations <- 10000
+result <- numeric(iterations)
+
+for(i in 1:iterations){
+  samp <- sample(ages, size = 10, replace = T) # Sample n = 10 points per run
+    
+  result[i] <- mean(samp)
+}
+
+samp_means <- tibble(
+  iteration = 1:10000,
+  result
+)
+
+# Technical note: for the CLT to work, the sample must be made up of
+# independent draws from the same distribution. So, the code samples from
+# the ages vector *with replacement*.  It is possible for an individual person
+# to be drawn more than once.
+```
+
+(a) Use `ggplot()` to create a histogram of the sampling distribution of the sample means.  Add a vertical line indicating the true average age, then add a different vertical line indicating the average of the experimental sample means.
+
+(b) Comment on the shape of the sampling distribution.  How similar is it to a normal bell curve?  Make a change to the sampling simulation code so that the histogram of sample means looks more like a bell curve.
+
+
+
+
+
+
+
+
