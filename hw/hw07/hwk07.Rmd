@@ -65,6 +65,7 @@ Copy-paste and edit the line above to perform this operation three times with 10
 
 ```{r}
 # Write your code for problem 4 here
+right_skewed <- c(rep(0, 60), rep(1, 25), rep(2, 10), rep(3, 5))
 
 ```
 
