@@ -1,0 +1,57 @@
+---
+title: "Section 11: Statistical Inference"
+author: "Student's Name Here"
+date: "2024-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## Confidence intervals
+
+For a 95% CI, let's look at the interval with area 0.95 on the standard normal curve.  The area outside is 0.05, which means each tail has area 0.05/2 = 0.025. 
+
+Find these values with `qnorm`:
+
+```{r}
+qnorm(0.025)
+qnorm(0.975)
+```
+
+What if we wanted to build a 90% CI?
+
+```{r}
+# qnorm()
+# qnorm()
+```
+
+
+## Hypothesis testing
+
+In the "Lady tasting tea" example, if Bristol is guessing randomly, the number of correct guessses is Binom(8, 0.5).
+
+If she gets 6 out of 8 correct, then the p-value is the sum of the binomial probabilities greater than or equal to 6.
+
+```{r}
+1 - pbinom(5, 8, 0.5)
+```
+
+What is the p-value if she gets 8 out of 8 correct?
+
+```{r}
+# pbinom()
+```
+
+
+
+
+
+
+
+
