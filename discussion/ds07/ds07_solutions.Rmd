@@ -1,0 +1,253 @@
+---
+title: "Discussion 7"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds07`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to get familiar with the normal distribtuion.  You'll have a chance to practice standardization and also use R to find different normal probabilities.  The last problem will cover the Central Limit Theorem and how it applies to the distribution of the sample mean.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+(a) Many real-life processes follow an approximately normal shape.  Match the six descriptions below to the six normal parameterizations that make the most sense for the given units.
+
+Description choices:
+
+- I: Test scores out of 100
+- II: Driving time from Madison to Chicago, in hours
+- III: Energy in a footlong Subway sandwich, in calories
+- IV: Annual salary of entry-level workers, in dollars
+- V: Length of human pregnancy, in days
+- VI: Amount of sleep per night, in hours
+
+Normal parameterization choices (mean, sd):
+
+- A: $N(905, 120)$ <span style="color:#5858d0"> describes the calories in a footlong Subway sandwich. </span>
+- B: $N(80, 4.5)$ <span style="color:#5858d0"> describes test scores out of 100. </span>
+- C: $N(270, 12)$ <span style="color:#5858d0"> describes the length of a pregnancy in days. </span>
+- D: $N(3, 0.26)$ <span style="color:#5858d0"> describes the driving time from Madison to Chicago in hours. </span>
+- E: $N(6.5, 1.2)$ <span style="color:#5858d0"> describes the hours of sleep per night </span>
+- F: $N(50000, 9500)$ <span style="color:#5858d0"> describes the annual salary of entry-level workers. </span>
+
+
+(b) Below is a list of eight different values from different normal curves, including the ones in (a).  Using standardization, create four pairs of matching values based on what z-score they represent.
+
+- A value that is 1.5 standard deviations below average
+- A z-score of 0.8
+- Sleeping 6 hours in a night
+- The 6.7th percentile of calories in a Subway sandwich
+- A pregnancy that lasts 279.6 days
+- Taking 3 hours and 20 minutes to drive from Madison to Chicago
+- An entry-level salary that is below 10% of all other entry-level salaries
+- Getting a test score of 78.1
+
+
+<span style="color:#5858d0"> The 6.7th percentile of calories in a Subway sandwich corresponds to a value 1.5 SDs below average, which is a z-score of -1.5 </span>
+
+```{r, class.source="soln", class.output="soln"}
+qnorm(0.067)
+
+qnorm(0.067, 905, 120) # About 725 calories, in original units
+```
+
+---
+
+<span style="color:#5858d0"> A z-score of 0.8 corresponds to a pregnancy that lasts 279.6 days. </span>
+
+```{r, class.source="soln", class.output="soln"}
+(279.6 - 270)/12
+```
+
+---
+
+<span style="color:#5858d0"> Sleeping 6 hours in a night corresponds to a test score of 78.1, since each have a z-score of about -0.42.
+
+```{r, class.source="soln", class.output="soln"}
+(6 - 6.5)/1.2
+
+(78.1 - 80)/4.5
+```
+
+---
+
+<span style="color:#5858d0"> Taking 3 hours and 20 minutes to drive from Madison to Chicago corresponds with an entry level salary that is below 10% of all other entry-level salaries.  These both refer to the 90th percentile, or a z-score of about 1.28.
+
+```{r, class.source="soln", class.output="soln"}
+(3.333 - 3)/0.26
+
+pnorm((3.33 - 3)/0.26)
+
+qnorm(0.9)
+```
+
+
+# Problem 2
+#### (approx. 15 minutes)
+
+In the US, men's heights are normally distributed with mean 70 inches and standard deviation 3.  Women's heights are normally distributed with mean 64 inches and standard deviation 2.5.  Calculate the probability of each of the following events.
+
+(a) Six US men are chosen at random, and exactly two of them have to duck under a 72-inch tall doorway.
+
+<span style="color:#5858d0"> The probability that a single randomly chosen man has to duck is about 0.252. </span>
+
+```{r, class.source="soln", class.output="soln"}
+1 - pnorm(72, 70, 3)
+```
+
+<span style="color:#5858d0"> We want to count the number of men out of six that meet this criteria, which is a binomial process.  B - each man is either over 72 inches or not; I - assume the men are independent; N - we're looking at six draws; S - each one has probability 0.252. We want the probability that this binomial RV equals 2, which is about 0.298.</span>
+
+```{r, class.source="soln", class.output="soln"}
+dbinom(2, 6, 0.252)
+```
+
+(b) A randomly chosen woman is taller than a man who is at the 30th percentile for height.
+
+<span style="color:#5858d0"> The 30th percentile for men's heights is about 68.4 inches.  The area (probability) above this value on the women's height distribution is about 0.04. </span>
+
+```{r, class.source="soln", class.output="soln"}
+qnorm(0.3, 70, 3)
+
+1 - pnorm(68.4, 64, 2.5)
+
+# We can also do this in a single line of R code
+
+1 - pnorm(qnorm(0.3, 70, 3), 64, 2.5)
+```
+
+(c) A randomly chosen man is shorter than 170 centimeters.
+
+- (c.i) First, complete this problem by converting 170 cm to inches.
+
+<span style="color:#5858d0"> Using the conversion 1 inch = 2.54 cm, we can rewrite 170 cm as 170/2.54 = 66.93 inches.  The area below this value on the male height distribution is about 0.153. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pnorm(66.93, 70, 3)
+```
+
+- (c.ii) Next, complete this problem by converting the men's height distribution to centimeters, then comparing it to the value 170 directly.  Verify that you get the same answer as before.
+
+<span style="color:#5858d0"> The male height distribution is normal with mean 70 inches or 70(2.54) = 177.8 centimeters and standard deviation 3 inches or 3(2.54) = 7.62 centimeters.  If we compare the value 170 to the height distribution in centimeters, we get the same probability as before.  </span>
+
+```{r, class.source="soln", class.output="soln"}
+pnorm(170, 177.8, 7.62)
+```
+
+
+# Problem 3
+#### (approx. 15 minutes)
+
+Your TA will record the ages of everyone in discussion.  Save these values under the `ages` vector below, and find the average age of all of the discussion participants.  When creating the vector, you might find it useful to use the `rep()` function.
+
+<span style="color:#5858d0"> I will put in a vector of fake ages to demonstrate.  The population average age of the students is 19.72. </span>
+
+```{r, class.source="soln", class.output="soln"}
+ages <- c(rep(18, 5), rep(19, 8), rep(20, 6),
+          rep(21, 3), rep(22, 2), rep(24, 1))
+
+mean(ages)
+```
+
+The code below samples 10 points from the `ages` vector and finds the sample mean of those 10 observations.  It repeats this process for 10000 runs, and saves the 10000 theoretical sample means in a dataframe called `samp_means`.
+
+```{r}
+set.seed(240)
+
+iterations <- 10000
+result <- numeric(iterations)
+
+for(i in 1:iterations){
+  samp <- sample(ages, size = 10, replace = T) # Sample n = 10 points per run
+    
+  result[i] <- mean(samp)
+}
+
+samp_means <- tibble(
+  iteration = 1:10000,
+  result
+)
+
+# Technical note: for the CLT to work, the sample must be made up of
+# independent draws from the same distribution. So, the code samples from
+# the ages vector *with replacement*.  It is possible for an individual person
+# to be drawn more than once.
+```
+
+(a) Use `ggplot()` to create a histogram of the sampling distribution of the sample means.  Add a vertical line indicating the true average age, then add a different vertical line indicating the average of the experimental sample means.
+
+```{r, class.source="soln", class.output="soln"}
+pop_mean <- mean(ages)
+sampling_mean <- mean(samp_means$result)
+
+ggplot(samp_means, aes(x = result)) +
+  geom_histogram(fill = "dodgerblue") +
+  geom_vline(xintercept = c(pop_mean, sampling_mean),
+             linetype = c(1, 2))
+```
+
+<span style="color:#5858d0"> Solid line: true mean of the population; Dashed line: average of simulated sample means. </span>
+
+(b) Comment on the shape of the sampling distribution.  How similar is it to a normal bell curve?  Make a change to the sampling simulation code so that the histogram of sample means looks more like a bell curve.
+
+<span style="color:#5858d0"> The histogram of sample means is roughly normal, with a peak around the true mean of 19.72.  There are a few very tall histogram bars that have probably appeared because of the specific data I started with and the way the bar breakpoints are calculated.  The average of the simulated sample means is very similar to the true population average age. 
+
+The approximate normal shape gets better when we take a larger sample during each of our experimental runs.  I'll repeat the experiment but use n = 30 instead.  We see that the new histogram is much more like a bell curve and is also more concentrated around 19.72. </span>
+
+```{r, class.source="soln", class.output="soln"}
+set.seed(240)
+
+iterations <- 10000
+result <- numeric(iterations)
+
+for(i in 1:iterations){
+  samp <- sample(ages, size = 30, replace = T) # Sample n = 30 points per run
+    
+  result[i] <- mean(samp)
+}
+
+samp_means <- tibble(
+  iteration = 1:10000,
+  result
+)
+
+sampling_mean <- mean(samp_means$result)
+
+ggplot(samp_means, aes(x = result)) +
+  geom_histogram(fill = "dodgerblue") +
+  geom_vline(xintercept = c(pop_mean, sampling_mean),
+             linetype = c(1, 2))
+```
+
+
+
+
+
+
+
+
+
+
+
