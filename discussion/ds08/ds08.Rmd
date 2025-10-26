@@ -19,6 +19,11 @@ library(tidyverse)
 The goal of today's discussion will be to develop a stronger conceptual understanding of sampling distributions and confidence intervals.
 
 
+# Final Project
+
+The final project, to be completed in your usual discussion groups, has been assigned on Canvas.  Take a minute or two to exchange contact information and then start working on today's problems.
+
+
 # Problem 1
 #### (approx. 15 minutes)
 
