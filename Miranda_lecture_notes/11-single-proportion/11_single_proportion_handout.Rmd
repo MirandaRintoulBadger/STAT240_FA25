@@ -1,0 +1,246 @@
+---
+title: "Section 11: Proportion Inference"
+author: "Student's Name Here"
+date: "2024-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## Proportion sampling distribution
+
+
+This lecture will use the data in `chimpanzee.csv`. The data is based on an experiment conducted by scientists at Emory University in 2011; though those scientists did not make their true data public, we have created a "mock" dataset which gives the same results and summary values as their data.
+
+* Two chimpanzees were put in adjacent enclosures with the ability to see and communicate with each other.
+
+* One chimpanzee, the **actor**, was given the choice to pick from a bucket of tokens which were two different colors.
+
+* The actor had previously been taught that one color would lead to the human researcher to give them (just the actor) a treat. We call this the **selfish** choice.
+
+* The other color would lead to the human researcher giving **both the actor and the partner** a treat. We call this the "**prosocial**" choice.
+
+* The **actor** was given this choice 30 times, and the number of **prosocial** and **selfish** choices were recorded.
+
+* The researchers performed this experiment with many combinations of actors, partners, and colors; including observing their behavior when the actor had **no partner**.
+
+---
+
+* Our "mock" dataset for this can be found in `chimpanzee.csv`.  Each row is a combination of actor and partner
+
+```{r}
+chimpanzee <- read_csv("../../data/chimpanzee.csv")
+
+head(chimpanzee)
+```
+
+Let's exploree the data.
+
+```{r}
+sum1 <- chimpanzee %>% 
+  mutate(session_type = case_when(
+    partner == "none" ~ "no partner",
+    TRUE ~ "partner"
+  )) %>% 
+  group_by(actor, session_type) %>% 
+  
+  summarize(prosocial = sum(prosocial),
+            selfish = sum(selfish),
+            n = prosocial + selfish,
+            p_hat = prosocial/n)
+sum1
+```
+
+
+```{r}
+ggplot(sum1, aes(x = actor, y = p_hat,
+                 fill = session_type)) +
+  geom_col(color = "black",
+           position = position_dodge2(preserve = "single")) +
+  #scale_y_continuous(labels = percent_format(scale = 1)) +
+  labs(
+    x = "Chimpanzee",
+    y = "Pro-social Choice Probability",
+    title = "Chimpanzee Pro-social Choice Comparison",
+    subtitle = "With and Without Partners",
+    fill = "Session"
+  ) +
+  theme_minimal()
+```
+
+
+Let's simulate the observed number of prosocial choices in 90 trials, if $p = 0.6$.
+
+
+```{r}
+## simulation parameters
+B <- 10000
+n <- 90
+p <- 0.6
+
+## do the simulation
+sim <- tibble(
+  x_star = rbinom(B, n, p),
+  p_hat = x_star / n)
+```
+
+```{r}
+## Graphical summary
+ggplot(sim, aes(x = p_hat, y=after_stat(density))) +
+  geom_histogram(binwidth = 1/90,
+                 color = "black", fill = "dodgerblue") +
+  xlab("sample proportion (p-hat)") +
+  theme_minimal()
+
+## Numeric summary
+sim_summary <- sim %>% 
+  summarize(mean = mean(p_hat),  ## this should be very close to 0.6
+            sd = sd(p_hat)) ## this should be very close to 0.0516
+sim_summary
+```
+
+The sampling distribution of p-hat has a normal shape, and its mean is very close to $p = 0.6$.
+
+
+### Try it out
+
+Recreate the simulation but use $n = 30$ and $p = 0.2$ instead.  What do you notice about the shape of the sampling distribution?
+
+```{r}
+
+```
+
+
+## Confidence interval for p
+
+Let's build a 90% CI for $P_{A, partner}$. For 90% confidence (alpha = 0.1), use the 95th or 5th percentile.
+
+```{r}
+qnorm(0.05)
+qnorm(0.95)
+```
+
+A 90% Wald CI for $p_{A, partner}$ is
+
+```{r}
+n <- 90
+x <- 60
+p_hat <- x/n
+
+se <- sqrt(p_hat * (1 - p_hat) / n)
+
+cv <- qnorm(0.95)
+
+
+c(p_hat - cv*se, p_hat + cv*se)
+```
+
+Now, let's make the Agresti-Coull adjustment.  We add two successes and failures to our data.
+
+```{r}
+n <- 90
+x <- 60
+
+n_ac <- n + 4
+p_hat_ac <- (x + 2) / (n_ac)
+
+se <- sqrt(p_hat_ac * (1 - p_hat_ac) / n_ac)
+
+cv <- qnorm(0.95)
+
+
+c(p_hat_ac - cv*se, p_hat_ac + cv*se)
+```
+
+
+## Hypothesis test for p
+
+We want to test whether chimpanzee A makes prosocial choices with a rate greater than 0.5. The null distribution is Binom(90, 0.5) and the test statistic is 60.
+
+The p-value is $P(Binom(90, 0.5) \ge 60)$
+
+```{r}
+1 - pbinom(59, 90, 0.5)
+```
+
+
+### Try it out
+
+```{r}
+sum1_partner <- sum1 %>%
+  filter(session_type == "partner")
+
+# Overall prosocial rate with a partner
+sum(sum1_partner$prosocial) / sum(sum1_partner$n)
+```
+
+Chimpanzee F has the lowest observed prosocial-partner rate of 47/90.  Is the true rate significantly *less* than the average of 0.59?
+
+
+```{r}
+
+```
+
+
+### Psychic example
+
+A psychic claims to be able to guess a card suit at a better rate than p = 0.25.  They get 57 guesses correct out of 200.  The probability of 57, under the null, is 0.033.  Which outcomes are less likely?
+
+The outcomes 42 and below are less likely (more extreme, more evidence against H0) as 57.
+
+```{r}
+dbinom(57, 200, 0.25)
+
+tibble(
+  x = 38:45,
+  prob = dbinom(x, 200, 0.25),
+  lessThanP57 = prob < dbinom(57, 200, 0.25)
+)
+```
+
+
+For a one-sided p-value, find the probability of X >= 57.
+
+```{r}
+1 - pbinom(57 - 1, 200, 0.25)
+```
+
+
+What if our hypotheses were two-sided?  The p-value includes the outcomes greater than or equal to 57 AND those less than or equal to 42.
+
+```{r}
+pbinom(42, 200, 0.25) + (1 - pbinom(57 - 1, 200, 0.25))
+```
+
+
+# Normal approximation
+
+Let's repeat the two-sided test in the psychic example with a Z test.  Our null distirbution is N(0, 1) and our test statistic is 1.143.
+
+P-value calculation:
+
+```{r}
+pnorm(-1.143) + pnorm(1.143, lower.tail = F)
+# or
+2*pnorm(1.143, lower.tail = F)
+```
+
+We can also use a rejection region approach.  The two-sided rejection region splits $\alpha = 0.05$ into the tails of the normal.
+
+```{r}
+qnorm(0.025)
+qnorm(0.975)
+```
+
+Our test statistic falls between these values.
+
+
+
+
+
