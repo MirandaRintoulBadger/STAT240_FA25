@@ -1,0 +1,175 @@
+---
+title: "Section 14: Two-Sample Proportion Inference"
+author: "Student's Name Here"
+date: "2024-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+
+# CI for p_1 - p_2
+
+Return to the chimpanzee data from last section.
+
+```{r}
+chimpanzee <- read_csv("../../data/chimpanzee.csv")
+
+head(chimpanzee)
+```
+
+What is the difference in the proportion of prosocial choices by chimpanzee C with versus without a partner?
+
+```{r}
+sum1 <- chimpanzee %>% 
+  mutate(session_type = case_when(
+    partner == "none" ~ "no partner",
+    TRUE ~ "partner"
+  )) %>% 
+  group_by(actor, session_type) %>% 
+  
+  summarize(prosocial = sum(prosocial),
+            selfish = sum(selfish),
+            n = prosocial + selfish,
+            p_hat = prosocial/n)
+
+sum1 %>%
+  filter(actor == "C") %>%
+  arrange(desc(session_type))
+```
+
+```{r}
+# Simulation to show normal distribution
+
+## simulation parameters
+B <- 10000
+n1 <- 90
+p1 <- 0.6
+
+n2 <- 30
+p2 <- 0.5
+
+## do the simulation
+sim <- tibble(
+  phat_1 = rbinom(B, n1, p1) / n1,
+  phat_2 = rbinom(B, n2, p2) / n2,
+  diff = phat_1 - phat_2)
+```
+
+```{r}
+## Graphical summary
+ggplot(sim, aes(x = diff)) +
+  geom_histogram(binwidth = 1/90,
+                 color = "black", fill = "dodgerblue") +
+  xlab("Difference in proportions (phat 1 - phat 2") +
+  theme_minimal()
+
+## Numeric summary
+sim_summary <- sim %>% 
+  summarize(mean = mean(diff),  ## this should be very close to 0.1
+            sd = sd(diff)) ## this should be very close to 0.105
+sim_summary
+```
+
+
+
+Let's build a CI with the Agresti-Coffe adjustment.  $n2$ might not quite be large enough, but the normal approximation will still be mostly accurate.
+
+```{r}
+x1 <- 57
+n1 <- 90
+x2 <- 17
+n2 <- 30
+
+n_AC1 <- n1 + 2
+n_AC2 <- n2 + 2
+p_AC1 <- (x1+1)/n_AC1
+p_AC2 <- (x2+1)/n_AC2
+
+pt_est <- p_AC1 - p_AC2
+
+se <- sqrt( p_AC1*(1-p_AC1)/n_AC1 + p_AC2*(1-p_AC2)/n_AC2 )
+
+cv <- qnorm(0.975)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+
+### Try it out
+
+Build a 95% AC CI for the difference in prosocial behavior for chimpanzee B with and without a partner.
+
+```{r}
+
+```
+
+
+## Hypothesis testing for p_1 - p_2
+
+Let's look at chimpanzee C again:
+
+```{r}
+sum1 %>%
+  filter(actor == "C") %>%
+  arrange(desc(session_type))
+```
+
+
+Now, conduct a hypothesis test for the difference in proportions at the 5% level.  The standard error is calculated with an estimated common proportion, p-hat.
+
+```{r}
+x1 <- 57
+n1 <- 90
+x2 <- 17
+n2 <- 30
+
+p_hat <- (x1 + x2)/(n1 + n2)
+
+numerator <- (x1/n1) - (x2/n2)  # Observed difference in proportions
+
+denominator <- sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2))  # SE using common proportion
+
+test_stat <- numerator/denominator
+test_stat
+```
+
+If H0 is true and p_1 = p_2, then our test statistic came from N(0, 1).  We use the standard normal as our null distribution.  We want to find the area above our test statistic to find evidence that p_1 - p_2 is positive.
+
+```{r}
+pnorm(test_stat, lower.tail = F)
+```
+
+We can also use a rejection region approach.  For a one-sided test, the rejection region is in the upper tail.
+
+```{r}
+qnorm(0.95)
+```
+
+Our test statistic does not fall in the rejection region.
+
+
+### Try it out
+
+Perform a 5% level test of *two-sided* hypotheses for p_1 - p_2 != 0, for chimpanzee B.
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
