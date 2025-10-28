@@ -92,7 +92,7 @@ sim <- tibble(
 
 ```{r}
 ## Graphical summary
-ggplot(sim, aes(x = p_hat, y=after_stat(density))) +
+ggplot(sim, aes(x = p_hat)) +
   geom_histogram(binwidth = 1/90,
                  color = "black", fill = "dodgerblue") +
   xlab("sample proportion (p-hat)") +
