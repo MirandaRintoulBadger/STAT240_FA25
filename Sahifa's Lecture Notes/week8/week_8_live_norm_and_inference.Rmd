@@ -1,0 +1,180 @@
+---
+title: "week8-live_normal_and_inference"
+output: html_document
+date: "2025-10-20"
+---
+
+# Normal Distribution
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dnorm(13, 10, 5)
+dnorm(7, 10, 5)
+```
+
+```{r}
+pnorm(13, 10, 5, lower.tail = F)
+1-pnorm(13, 10, 5)
+
+pnorm(7, 10, 5) + pnorm(13, 10, 5, lower.tail = F)
+2*pnorm(7, 10, 5)
+
+pnorm(7, 10, 5) + pnorm(20, 10, 5, lower.tail = F)
+```
+
+```{r}
+qnorm(0.75, 10, 5)
+
+qnorm(0.75)*5+10
+```
+
+```{r}
+qnorm(1-0.05, 10, 5)
+qnorm(0.05, 10, 5, lower.tail = F)
+```
+
+
+```{r}
+pnorm(1.57) # prob using z-score
+pnorm(1500, 1029, 300) # prob using the actual dist
+pnorm(1.68) # prob using z-score
+pnorm(29, 19.4, 5.7) # prob using the actual dist
+```
+
+### CLT
+
+```{r}
+library(tidyverse)
+random_sample = rexp(10000, 10)
+mean(random_sample)
+mean = rep(0)
+for (i in 1:10000) {
+  random_sample = rexp(10000, 10)
+  mean[i] = mean(random_sample)
+}
+
+mean
+
+ggplot() +
+  geom_density(mapping = aes(x = mean))
+
+ggplot() +
+  geom_density(mapping = aes(x = random_sample))
+```
+
+
+```{r}
+random_sample = runif(10000, 0, 10)
+mean(random_sample)
+
+for (i in 1:10000) {
+  random_sample = runif(10000, 0, 10)
+  mean[i] = mean(random_sample)
+}
+
+
+ggplot() +
+  geom_density(mapping = aes(x = mean))
+
+ggplot() +
+  geom_density(mapping = aes(x = random_sample))
+```
+
+# Inference
+
+```{r}
+p = 0.7
+population = c(rep("A", 100*p), rep("B", 100*(1-p)))
+
+mean(sample(population, 5)=="A")
+mean(sample(population, 50)=="A")-0.7
+```
+
+```{r}
+mean(sample(population, 100)=="A")
+```
+
+```{r}
+
+p_hat_20 = replicate(10000, mean(rbinom(100, 20, 0.5))/20)
+
+ggplot(mapping= aes(x = p_hat)) +
+  geom_histogram(fill = "grey", col = "black")
+```
+
+```{r}
+p_hat_200 = replicate(10000, mean(rbinom(100, 200, 0.5))/200)
+p_hat_100 = replicate(10000, mean(rbinom(100, 100, 0.5))/100)
+ggplot(mapping= aes(x = p_hat)) +
+  geom_histogram(fill = "grey", col = "black")
+```
+
+
+```{r}
+ggplot() +
+  geom_histogram(mapping= aes(x = p_hat_20), fill = "grey", col = "black")+
+  geom_histogram(mapping= aes(x = p_hat_100), fill = "orange", col = "black", alpha = 0.5)+
+  geom_histogram(mapping= aes(x = p_hat_200), fill = "green", col = "black", alpha = 0.5)
+
+```
+
+
+
+```{r}
+p = 0.5 # this would be unknown in real life situations
+x = rbinom(100, 20, p) # this is the sample you will have 
+p_hat = mean(x)/20
+p_hat
+```
+
+$$CI = (\text{point estimate} - \text{c.v * s.e}, \text{point estimate} + \text{c.v * s.e})$$
+
+```{r}
+l.e <- qnorm(0.025, p, sqrt(p*(1-p))/20)
+l.e
+```
+
+```{r}
+u.e <- qnorm(0.025, p, sqrt(p*(1-p))/20, lower.tail = F)
+u.e
+```
+
+# That with 95% confidence my actual p is between 0.45 and 0.55
+
+```{r}
+# I am randomly selecting my p and have no idea what it is
+
+p = runif(1, 0, 1)
+sample = rbinom(100, 20, p)
+sample
+
+p_hat = mean(sample)/20
+p_hat
+c.v <- qnorm(0.975)
+s.e <- sqrt(p_hat*(1-p_hat))/20
+l.e <- p_hat - c.v*s.e
+u.e <- p_hat + c.v*s.e
+c(l.e, u.e)
+```
+
+
+```{r}
+pnorm(0.75, 0.5, sqrt(0.25/8), lower.tail = F)
+
+pnorm(0.75, 0.5, sqrt(0.75*(1-0.75)/8), lower.tail = F) # estimating s.e using p_hat, 
+pnorm((0.75-0.5)/sqrt((0.75*(1-0.75)/8)), lower.tail = F) # this is after standardizing the test statistic
+
+pbinom(5, 8, 0.5, lower.tail = F)
+```
+
+```{r}
+pbinom(7, 8, 0.5, lower.tail = F)
+pnorm(1, 0.5, sqrt(0.25/8), lower.tail = F)
+```
+
+
+
+
