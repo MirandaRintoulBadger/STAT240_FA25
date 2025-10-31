@@ -274,8 +274,6 @@ $$
 
 * I have written the function `visualizeProportionCI` just as a visual aid to help you understand confidence intervals. 
 
-* **We saw this earlier in week 8 when we introduced regression, but now we are going to explore it further.**
-
 * You give it the **true p** you are trying to estimate and a **sample size**, and it will generate a random point estimate and plot the confidence interval over it.
 
 ```{r, echo = FALSE}
