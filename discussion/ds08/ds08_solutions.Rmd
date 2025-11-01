@@ -1,0 +1,162 @@
+---
+title: "Discussion 8"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+# Preliminaries
+
+-   This file should be in `STAT240/discussion/ds08`.
+-   This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to develop a stronger conceptual understanding of sampling distributions and confidence intervals.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+The trading-card-game "WOW! WIZARD BATTLE!" is sold in packs of 15 randomized playing cards. $X$, the number of legendary wizard cards per pack, is a random variable with the following distribution.
+
+| $x$        | 0   | 1   | 2    | 3    |
+|:----------:|:---:|:---:|:----:|:----:|
+| $P(X = x)$ | 0.4 | 0.4 | 0.15 | 0.05 |
+
+Early in the day, a customer purchases 40 card packs from a store.  Later, another customer visits the same store and purchases the remaining 5 card packs.
+
+(a) Match the six descriptions below to the appropriate sampling distribution histogram given in `ds08_histograms.png`.  Which of these statistics are approximately normal?
+
+- $\bar{X}_{5}$, the average number of legendary wizards per pack across 5 packs [Histogram IV]{style="color:#5858d0"}
+- $\bar{X}_{40}$, the average number of legendary wizards per pack across 40 packs [Histogram VI]{style="color:#5858d0"}
+- $T_{5}$, the total number of legendary wizards in 5 packs [Histogram V]{style="color:#5858d0"}
+- $T_{40}$, the total number of legendary wizards in 40 packs [Histogram I]{style="color:#5858d0"}
+- $Min_{5}$, the minimum number of legendary wizards in a pack across 5 packs [Histogram III]{style="color:#5858d0"}
+- $Med_{40}$, the median number of wizards per pack across 40 packs [Histogram II]{style="color:#5858d0"}
+
+(b) The Central Limit Theorem says that, for a big enough sample size, the sample mean will have an approximately normal sampling distribution.  Explain why this normal approximation also true for the sample total.  *Consider the relationship between the sample mean and sample total*.
+
+[The sample total is just equal to the sample mean multiplied by a constant value (n).  So, if the sample mean is a normal random variable, the sample total is just a scaled normal random variable, which preserves the bell-curve shape, and so the sample total is also a normal RV.]{style="color:#5858d0"}
+
+(c) Using what you discussed in (b), explain how the CLT allows a binomial random variable (with certain values of $n$ and $p$) to be approximated by a normal random variable.
+
+[A binomial random variable can be understood as the total of a sample from a binary 0-1 population.  With a sufficiently large sample size (depending on $p$), the histogram of a binomial result will be approximately normal, since in part (b) we discussed how the CLT applies to a sample total. ]{style="color:#5858d0"}
+
+
+# Problem 2
+#### (approx. 10 minutes)
+
+Continue working with the sample of 5 packs and the sample of 40 packs in problem 1.  Suppose each of these customers wants to use their respective sample to estimate $p = P(X = 1)$, the true proportion of packs with exactly one legendary wizard.  Each customer calculates a sample proportion $\hat{p}$ of how many of their packs contained exactly one legendary wizard.
+
+(a) Without doing any calculation, which of the two customers will have a *biased* estimate of the true value of $p$?
+
+[Neither of the estimates will be biased.  The expected value of the sample proportion matches the true proportion, and this is true regardless of how big of a sample we have.]{style="color:#5858d0"}
+
+(b) Without doing any calculation, which of the two customers will have less error in their estimation of the true $p$?
+
+[The customer who opened 40 packs will have a much more precise estimate and less error than the customer who only opened 5 packs.  A larger sample size means that our estimation error goes down. ]{style="color:#5858d0"}
+
+(c) Verify your answer to (b) by calculating the standard error of $\hat{p}$ for each customer:
+
+$$\text{std. error of }\hat{p} \;=\; \sqrt{\frac{p(1-p)}{n}}$$
+
+[The standard error for the customer who opened 5 packs is $\sqrt{\frac{0.4(0.6)}{5}} = 0.219$ and the standard error for the customer who opened 40 packs is $\sqrt{\frac{0.4(0.6)}{40}} = 0.077$.  The error for the 5-pack customer is almost three times as large as the error for the 40-pack customer.]{style="color:#5858d0"}
+
+# Problem 3
+#### (approx. 25 minutes)
+
+A politician claims that "half of all residents in my region worry about being a victim of crime." A random survey of $n = 100$ residents shows that $x = 45$ of them worry about being a victim of crime.
+
+(a) Build a 95% confidence interval for the proportion of residents who are worried. Use the following formula, which can be viewed in ds08.html:
+
+$$\text{estimate } \pm \text{ z value }\times \text{ standard error } \quad \rightarrow\quad \hat{p} \pm z \times \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
+
+Make sure your z value, calculated with `qnorm()`, reflects a confidence level of 95%, i.e. $\alpha = 0.05$.
+
+[ The observed proportion of $\hat{p} = 0.45$ will form the center of our interval. The standard error is $\sqrt{\frac{0.45(0.55)}{100}} = 0.05$ and the critical value for 95% confidence is the upper $\alpha/2 = 0.025$ percentile of the standard normal, 1.96. ]{style="color:#5858d0"}
+
+```{r, class.source="soln", class.output="soln"}
+phat <- 45/100
+se <- sqrt(0.45*0.55/100)
+cv <- qnorm(0.975)
+
+# Margin of error, half-width of the interval
+moe <- se*cv
+
+# Final interval
+c(phat - moe, phat + moe)
+```
+
+(b) Does your confidence interval support the politician's claim?
+
+[ The confidence interval supports the politician's claim, since the value 0.5, corresponding to half of the population, does fall within the interval. So we think it is a plausible guess for the true proportion of people who are worried. ]{style="color:#5858d0"}
+
+(c) Let's create a fictitious population where exactly 48% of them are worried about being a victim of crime. The code below takes 10000 random samples of size 100, calculates the sample proportion of worried residents out of 100, and finds the upper and lower bounds of a confidence interval.
+
+    Complete the code by writing in a line to calculate the margin of error (z-value times standard error), similar to what you did in part (a). You can use variables `phat` and `n` for the sample proportion and sample size. You don't need to change any other lines of code.
+
+```{r, class.source="soln", class.output="soln"}
+n <- 100
+pop <- c(rep(0, 52), rep(1, 48)) # 48% of residents are worried (they have value 1)
+
+iterations <- 10000
+point_est <- numeric(iterations)
+ci_lower <- numeric(iterations)
+ci_upper <- numeric(iterations)
+
+set.seed(240)
+for(i in 1:iterations){
+  samp <- sample(pop, size = 100, replace = T) # Sample 100 residents
+  phat <- sum(samp)/100       # Find sample proportion who are worried
+  
+  moe <- qnorm(0.975)*sqrt(phat*(1-phat)/n) 
+    
+  point_est[i] <- phat
+  ci_lower[i] <- phat - moe    # Lower bound of CI
+  ci_upper[i] <- phat + moe    # Upper bound of CI
+}
+
+intervals <- tibble(point_est, ci_lower, ci_upper)
+```
+
+(d) After completing part (c), you should have a dataset called `intervals` with 10000 rows that has the lower and upper bound of 10000 theoretical CIs made from samples of 100. Use dplyr to mutate a new column that labels whether the interval covers the true value of 0.48. Then, calculate the proportion of intervals that cover 0.48.
+
+[ We'll use `&` to check whether the lower bound is below 0.48 and the upper bound is above 0.48 for each of the 10000 intervals. ]{style="color:#5858d0"}
+
+```{r, class.source="soln", class.output="soln"}
+intervals <- intervals %>%
+  mutate(covers_48 = ci_lower < 0.48 & ci_upper > 0.48)
+
+intervals %>%
+  summarize(prop_covers_48 = mean(covers_48))
+```
+
+[ We see that 94.5% of samples result in an interval that covers 0.48, which is very similar to the theoretical confidence level of 95%. ]{style="color:#5858d0"}
+
+(e) Now, instead of the true proportion 0.48, consider the politician's claim of a proportion 0.5. Based on the simulation, if the true proportion is actually 0.48, what is the probability that a random sample of 100 will support the claim of a proportion of 0.5?
+
+```{r, class.source="soln", class.output="soln"}
+intervals <- intervals %>%
+  mutate(covers_50 = ci_lower < 0.5 & ci_upper > 0.5)
+
+intervals %>%
+  summarize(prop_covers_50 = mean(covers_50))
+```
+
+[ About 92.4% of the intervals cover the value 0.5. Even though the true proportion of residents who are worried is actually less than 50%, a theoretical sample will usually still support the politician's claim. ]{style="color:#5858d0"}
