@@ -1,5 +1,5 @@
 ---
-title: "Section 14: Two-Sample Proportion Inference"
+title: "Section 12: Two-Sample Proportion Inference"
 author: "Student's Name Here"
 date: "2024-10-11"
 output: html_document
@@ -88,14 +88,14 @@ n1 <- 90
 x2 <- 17
 n2 <- 30
 
-n_AC1 <- n1 + 2
-n_AC2 <- n2 + 2
-p_AC1 <- (x1+1)/n_AC1
-p_AC2 <- (x2+1)/n_AC2
+n1_ac <- n1 + 2
+n_2_ac <- n2 + 2
+phat1_ac <- (x1+1) / n1_ac
+phat2_ac <- (x2+1) / n2_ac
 
-pt_est <- p_AC1 - p_AC2
+pt_est <- phat1_ac - phat2_ac
 
-se <- sqrt( p_AC1*(1-p_AC1)/n_AC1 + p_AC2*(1-p_AC2)/n_AC2 )
+se <- sqrt(phat1_ac*(1-phat1_ac)/n1_ac + phat2_ac*(1-phat2_ac)/n2_ac)
 
 cv <- qnorm(0.975)
 
@@ -123,7 +123,7 @@ sum1 %>%
 ```
 
 
-Now, conduct a hypothesis test for the difference in proportions at the 5% level.  The standard error is calculated with an estimated common proportion, p-hat.
+Now, conduct a hypothesis test for the difference in proportions at the 5% level.  The standard error is calculated with an estimated common proportion, p-hat.  We don't make the AC adjustment here.
 
 ```{r}
 x1 <- 57
