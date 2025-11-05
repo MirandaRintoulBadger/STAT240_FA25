@@ -1,0 +1,105 @@
+---
+title: "Homework 9"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/homework/hw09` on your local computer.
+- Download `parental_leave.csv` to `STAT240/data`.
+
+
+# Problem 1
+
+(Fictional data): In a survey done in 2000, 63 out of 500 American households reported serving only vegetarian or vegan dishes for Thanksgiving.  In a similar survey done in 2024, the number of reported households serving only vegetarian or vegan dishes was 116 out of 500.
+
+Based on this data, a Z Agresti-Coffe confidence interval for a difference in proportions (2000 - 2024) was reported as 
+
+$$(-0.1451, -0.0660)$$
+
+Identify the confidence level that was used to create this interval.
+
+
+# Problem 2
+
+The human sex ratio at birth slightly favors boys (abouth 50.7% to 51.5% of live births are boys).  The "[returning soldier effect](https://en.wikipedia.org/wiki/Returning_soldier_effect)" is a phenemonon where more boys are born immediately following crises such as war.
+
+In the year 1940, before the US joined World War II, there were 1211684 male and 1148715 female live births in the US.  In the year 1946, after WWII ended, there were 1691220 male and 1597452 female live births in the US.
+
+Build a 95% confidence interval on the difference in proportion of male births between 1940 and 1946 and use the Agresti-Coffe adjustment.  Interpret your results in context.
+
+
+# Problem 3
+
+Perform a hypothesis test to determine whether the proportion of male births in the US in 1946 is greater than the proportion of male births in the US in 1940.  Write appropriate one-sided hypotheses and draw a conclusion with $\alpha = 0.05$.
+
+
+# Problem 4
+
+The p-value for a two-sided T test of the hypotheses $H_0: \mu = 15$ versus $H_A: \mu \neq 15$ is 0.03.
+
+(a) Does the 99% T confidence interval for $\mu$ using this same sample include 15? Why or why not?
+
+(b) Does the 95% T confidence interval for $\mu$ using this same sample include 15? Why or why not?
+
+
+# Problem 5
+
+The file `parental_leave.csv` contains information on crowdsourced parental leave data for 1601 different companies.  
+
+```{r}
+leave <- read_csv("../../data/parental_leave.csv")
+
+# Remove spaces from column names
+names(leave) <- make.names(names(leave))
+
+# Tidy numeric columns
+leave <- leave %>%
+  mutate_at(vars(Paid.Maternity.Leave, Unpaid.Maternity.Leave,
+                 Paid.Paternity.Leave, Unpaid.Paternity.Leave),
+            as.numeric) %>%
+  replace(is.na(.), 0)
+```
+
+(a) Mutate a column for total paid leave by adding the hours of paid maternity and paternity leave. Optionally, give the columns shorter names that are easier to reference.
+
+(b) Filter the data to only include the "Educational Services: College & Universities" industry.  Create a histogram of total paid leave and comment on its shape.
+
+(c) Comment on why a T test for the mean might still be an appropriate method, even though the total paid leave data does not look normal.
+
+
+# Problem 6
+
+Build a 98% T CI for the average total paid leave of companies in "Educational Services: College & Universities", and interpret the results.
+
+(a) First, calculate and save the summary values.
+
+(b) Calculate the point estimate and standard error from the data.  Find a T critical value with $n - 1$ degrees of freedom based on $\alpha = 0.02$ and use this to construct the CI.
+
+
+# Problem 7
+
+Perform a test at the 2% level to determine whether the "Educational Services: College & Universities" average total paid leave is greater than 10 weeks.  State hypotheses, report a test statistic and p-value. You must do this by hand, then check your results with `t.test`.
+
+
+# Problem 8
+
+Re-calculate the p-value from problem 3, but use a standard normal distribution instead of a $T_{n-1}$ distribution.  Why are the results very similar?
+
+
+
+
+
+
+
+
+
