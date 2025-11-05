@@ -1,0 +1,186 @@
+---
+title: "Discussion 9"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds09`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to practice hypothesis testing concepts and compare different methods for doing inference on a single proportion.
+
+
+# Problem 1
+#### (approx. 10 minutes)
+
+In statistical testing, the significance level $\alpha$ can also be thought of as the "false positive" error rate, which is the probability that we incorrectly reject the null when the null is actually true.  This is in contrast to a "false negative" error, where we incorrectly fail to reject the null when the alternative is true.  These are called type I and type II errors.
+
+- Type I error: the null is actually true, but we reject it (happens with probability $\alpha$)
+- Type II error: the null is actually false, but we fail to reject it
+
+We control these error rates by setting a larger or smaller $\alpha$.
+
+(a) For each of the following scenarios, write appropriate null and alternative hypotheses in context.  Explain what a type I and type II error would mean, and make an argument for which type of error would be worse.  The first prompt is done for you as an example.
+
+- (a.i) We are using a swab to detect whether is currently infected with COVID-19.
+
+*Null: the person is healthy; Alternative: the person has covid.*
+*Type I error: the person is actually healthy, but the swab returns positive.*
+*Type II error: the person actually has covid, but the swab returns negative.*
+*I think a type II error would be worse, since the person would mistakenly believe themselves to be healthy and might accidentally spread the disease to others.*
+
+- (a.ii) A jury is deciding whether to convict a defendant of a serious crime.
+
+<span style="color:#5858d0"> Null: The defendant is innocent; Alternative: the defendant committed the crime.
+Type I error: the defendant is wrongly committed of the crime.
+Type II error: the defendant committed the crime, but is allowed to go free.
+I think a type I error would be worse, since an innocent person would wrongly suffer a serious punishment. </span>
+
+- (a.iii) An alarm is set to sound in the event of a fire.
+
+<span style="color:#5858d0"> Null: There is no fire; Alternative: there is a fire
+Type I error: there is no fire, but the alarm sounds.
+Type II error: there is a fire, but the alarm fails to sound.
+I think a type II error would be worse, since people would not be alerted about a dangerous situation and may not have time to escape. </span>
+
+- (a.iv) A clinical trial is run for a new pain medication to see if it is more effective than a placebo.
+
+<span style="color:#5858d0"> Null: The pain medication is no more effective than a placebo; Alternative: the pain medication is more effective than the placebo.
+Type I error: the medication is not effective, but it still gets prescribed.
+Type II error: the medication is effective, but is not prescribed to anyone.
+I think a type I error would be worse since patients might use this ineffective medication instead of a different, better one. </span>
+
+(b) If we want to avoid making a type I error, should we choose a large or small $\alpha$, and why?
+
+<span style="color:#5858d0"> If we want to avoid a type I error, we should set a small $\alpha$, which means that we need to have very strong evidence in order to reject the null.  We are less likely to reject the null and therefore less likely to make a type I (false positive) error. </span>
+
+(c) If we want to avoid making a type II error, should we choose a large or small $\alpha$, and why?
+
+<span style="color:#5858d0"> If we want to avoid a type II error, we should set a parger $\alpha$, which means that we do not need as much evidence to reject the null.  We are more likely to reject the null, and therefore less likely to make a type II (false negative) error. </span>
+
+
+# Problem 2
+#### (approx. 10 minutes)
+
+Suppose you have completed a hypothesis test and found a final p-value of 0.03.  Which of the following statements is an appropriate conclusion?  Give a brief explanation for each.
+
+- Since we have a small p-value, we have failed to disprove the alternative hypothesis.
+
+<span style="color:#5858d0"> This conclusion is not correct, because we are not trying to disprove the alternative hypothesis.  Instead, we assume the alternative is false, and look for evidence in favor of the alternative. </span>
+
+- If the null hypothesis were true, the p-value would be larger than 0.05.  So, the null hypothesis is false.
+
+<span style="color:#5858d0"> This conclusion is not correct.  If the null were true, the p-value from our test statistic would be larger than 0.05 with probability 0.95.  So, even if the null were true, there is still a 5% chance of getting a small p-value.  We cannot definitively disprove the null through hypothesis testing. </span>
+
+- If the null hypothesis were true, the p-value would be smaller in only 3% of cases.  So, the null hypothesis is probably false.
+
+<span style="color:#5858d0"> This conclusion is the most accurate.  Because our p-value is very extreme and unlikely under the assumption of the null being true, this gives us evidence that the null might be false. </span>
+
+- There is only a 3% chance that the null hypothesis is true, so the null hypothesis is probably false.
+
+<span style="color:#5858d0"> This is an incorrect interpretation of a p-value.  The probability of a p-value has to do with the test statistic we observe, and it does not apply directly to the null hypothesis. </span>
+
+
+# Problem 3
+#### (approx. 15 minutes)
+
+A video game developer is calibrating the difficulty of their game.  They want 25% of players to beat a certain level on their first try.  In a test group of 120 players, 22 of them beat the level on their first try.
+
+(a) Write appropriate hypotheses to test $p$, the true probability that a player beats the level on their first try.  What is the direction of the alternative hypothesis?
+
+<span style="color:#5858d0"> Since we are not looking to test whether $p$ is specifically smaller or greater than the desired 0.25, we should use two-sided hypotheses.
+$$H_0: p = 0.25 \quad \text{versus} \quad H_A: p \neq 0.25$$
+</span>
+
+(b) Complete the hypothesis test at the 2% level using a binomial null distribution. State your test statistic, p-value, and conclusion.
+
+<span style="color:#5858d0"> Under the null, the number of players who beat the level on their first try is $X \sim Binom(120, 0.25)$.  We observed test statistic $x = 22$. Since we have a two-sided test, we need to find the probability on the null of seeing 22 or something more extreme in either direction. </span>
+
+```{r, class.source="soln", class.output="soln"}
+dbinom(22, 120, 0.25)
+
+tibble(x = 35:44,
+       p = dbinom(x, 120, 0.25))
+```
+
+<span style="color:#5858d0"> $P(X = 22)$ is 0.0204 and according to the table the outcomes 38 and above are more extreme than that under the null.  So, the p-value is $P(X \le 22) + P(X \ge 38) = 0.113$.  Our p-value is larger than our significance level of 0.02, so we fail to reject the null.  We don't have evidence that the true proportion is different from 0.25. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pbinom(22, 120, 0.25) + (1 - pbinom(37, 120, 0.25))
+```
+
+
+(c) Re-do the test of hypotheses in (a), but use a Z test as an approximation.  How do your p-value and conclusion compare to the one in (b)?
+
+<span style="color:#5858d0"> Here, we are making use of a normal approximation to use $N(0, 1)$ as our null distribution instead of the binomial. The test statistic is 
+$$z \;=\; \frac{\frac{22}{120} - 0.25}{\sqrt{\frac{0.25(1-0.25)}{120}}} \;=\; -1.687.$$
+The p-value is the area on $N(0, 1)$ outside of -1.687 in both tails.  We can calculate the probability below -1.687 and multiply it by 2 since the normal curve is symmetric.  We get a p-value of 0.09, larger than our significance level of 0.02, so we decide to fail to reject.  Compared to the exact binomial test, we have a slightly different p-value but come to the same conclusion.
+</span>
+
+```{r, class.source="soln", class.output="soln"}
+2*pnorm(-1.687)
+```
+
+
+(d) List a few advantages and disadvantages of using a binomial test versus using a Z test to analyze a proportion $p$.
+
+<span style="color:#5858d0"> The binomial test for a single proportion is exact, and also requires fewer assumptions - we just need to assume the binomial model is accurate. The Z test is approximate, and may not be accurate if $np(1-p)$ is too small.  But the p-value calculation is easier on the continuous normal distribution. </span>
+
+
+(e) Now, consider building a 98% Wald CI for $p$ using the same data.  Do the conclusions about the null value of x from this interval match the conclusions binomial test, the normal test, or both?  Will the CI and hypothesis testing methods always reach the same conclusion?
+
+<span style="color:#5858d0"> The point estimate for our CI is $22/120 = 0.183$ and the estimated standard error is $\sqrt{\frac{0.183(1-0.183)}{120}} = 0.0353$.  For 98% confidence, the critical value is the 99th percentile of the normal distribution, which is 2.326. </span>
+
+```{r, class.source="soln", class.output="soln"}
+qnorm(0.99)
+```
+
+<span style="color:#5858d0"> The 98% CI is
+$$0.183 \pm 2.326(0.0353) \;=\; (0.101, 0.265).$$
+</span>
+
+```{r, class.source="soln", class.output="soln"}
+# Check work with R
+pt_est <- 22/120
+se <- sqrt((22/120)*(1 - 22/120) / 120)
+
+cv <- qnorm(0.99)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+<span style="color:#5858d0"> The value 0.25 falls within the interval, which corresponds to the fact that we failed to failed to reject the null value of 0.25 in our hypothesis tests. The Wald CI makes use of a Z critical value, so it is using the normal approximation, so it should correspond to the one-sample Z proportion test. </span>
+
+<span style="color:#5858d0"> However, the two methods are not identical, since they use different standard error terms. In the Z test, the standard error (denominator of our test statistic) uses the null value $p = 0.25$.  But for the CI, we have no null value, so we have to approximate standard error with $\hat{p} = 22/120$. The two methods often agree but will not necessarily reach the same conclusions in every case. </span>
+
+---
+
+# Midterm 2: Friday, November 7
+
+Use the remaining time in discussion to work on writing your cheat sheet for the second midterm.  You can bring a standard sheet of paper with anything you want written on both sides, and you are welcome to work with others to decide what you want to put on your sheet.
+
+The first midterm will cover the probability unit and basic statistical concepts of STAT 240: homeworks 5-8 and discussions 6-9.
+
+
+
+
