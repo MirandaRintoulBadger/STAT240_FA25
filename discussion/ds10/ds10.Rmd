@@ -1,0 +1,59 @@
+---
+title: "Discussion 10"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds10`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to think about proportion inference and one-sample mean inference in more detail.  We'll also look at dissecting confidence intervals and hypothesis tests in different ways.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+We have seen how to perform a two-sample proportion test against a difference of zero. Now, consider a test where the null difference in proportions is not zero:
+$$H_0: p_1 - p_2 = 0.2 \quad\text{versus}\quad H_A: p_1 - p_2 \neq 0.2$$
+Show how this test would be performed if we have two groups of data with $\hat{p}_1 = 0.5$, $\hat{p}_2 = 0.35$, $n_1 = 80$, and $n_2 = 120$. Use $\alpha = 0.05$. *The test statistic is not the same as if we were testing $p_1 - p_2 = 0$!*
+
+
+# Problem 2
+#### (approx. 20 minutes)
+
+In statistics, we often have an idea of what a desirable or informative result looks like. We ask, "What qualities must our analysis have to acheive this result?" Perform these calculations for the three separate examples below.
+
+(a) Consider building a T confidence interval with $n = 35$ observations based on a sample with sample sd $s = 8.4$. What is the biggest confidence level (smallest $\alpha$) we can use if we want to have margin of error less than 3?
+
+(b) A 95% Wald confidence interval will be used to obtain an estimate for an unknown population proportion $p$. What is the smallest sample size that will guarantee a margin of error of at most 0.08?
+
+(c) We are performing a one-sided T hypothesis test of 
+$$H_0: \mu = 5 \quad \text{versus}\quad H_A: \mu > 5$$
+with $s = 43.1$ and $n = 150$. How large does the observed sample mean $\bar{x}$ need to be to see a one-sided p-value of 0.05?  *Start with the formula for a test statistic, then solve for $\bar{x}$.  What value goes on the other side of your equation?*
+
+(d) In the previous three parts, we worked with the significance level $\alpha$, the sample size $n$, and the sample mean $\bar{X}$. Which of these three quantities would it be most logical to manipulate, as a researcher? Explain your choice.
+
+
+# Problem 3
+#### (approx. 10 minutes)
+
+Using a sample of $n = 48$ points, a 98% T confidence interval for $\mu$ is reported as $(490.2, 584.6)$.
+
+(a) Identify the point estimate and margin of error of this interval.
+
+(b) Re-create the 98% interval, but use a Z critical value from N(0, 1) instead of a T critical value.  How does this interval compare to $(490.2, 584.6)$?
+
+(c) What assumptions/approximations are we making when we use a standard normal distribution to make inference on $\mu$?  Under what conditions would a Z confidence interval for $\mu$ be exact?
+
+
+
