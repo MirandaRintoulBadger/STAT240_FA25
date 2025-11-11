@@ -925,15 +925,15 @@ chimpanzee %>%
 
 2) The standard error is known, but based on $p$; so we will have to make an adjustment, as we did for a single proportion.
 
-### Agresti-Coffe Adjustment for p1-p2
+### Agresti-Coull Adjustment for p1-p2
 
-> The **Agresti-Coffe** adjustment can be thought of as the **difference in proportions** version of the single proportion **Agresti-Coull** adjustment.
+> The **Agresti-Coull** adjustment can be thought of as the **difference in proportions** version of the single proportion **Agresti-Coull** adjustment.
 
-> Just like its single proportion equivalent, this "A-C" adjustment adds two successes and four failures to the dataset; but for two proportions, we **split them evenly amongst the two groups.**
+> Just like its single proportion equivalent, this "AC" adjustment adds two successes and four failures to the dataset; but for two proportions, we **split them evenly amongst the two groups.**
 
 > $\hat{p_{1AC}} = \frac{X_1 + 1}{n_1 + 2}$, and $\hat{p_{2AC}} = \frac{X_2 + 1}{n_2 + 2}$. These adjustments carry through to the calculations of the point estimate and standard error.
 
-* With the Agresti-Coffe adjustment,
+* With the Agresti-Coull adjustment,
 
 $$
 \text{SE}(\hat{p}_{1AC} - \hat{p}_{2AC}) = \sqrt{ \frac{\hat{p}_{1AC}(1-\hat{p}_{1AC})}{n_1+2} + \frac{\hat{p}_{2AC}(1-\hat{p}_{2AC})}{n_2+2} }
@@ -941,7 +941,7 @@ $$
 
 ### Final Formula
 
-* Using the Agresti-Coffe adjustment, we can finally arrive at our final form for a confidence interval for a difference in proportions:
+* Using the Agresti-Coull adjustment, we can finally arrive at our final form for a confidence interval for a difference in proportions:
 
 $$
 \hat{p_{1AC}} - \hat{p_{2AC}} \pm \text{qnorm(C + (1-C)/2)} * \sqrt{ \frac{\hat{p}_{1AC}(1-\hat{p}_{1AC})}{n_1+2} + \frac{\hat{p}_{2AC}(1-\hat{p}_{2AC})}{n_2+2} }
