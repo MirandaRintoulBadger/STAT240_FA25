@@ -93,7 +93,7 @@ Perform a test at the 2% level to determine whether the "Educational Services: C
 
 # Problem 8
 
-Re-calculate the p-value from problem 3, but use a standard normal distribution instead of a $T_{n-1}$ distribution.  Why are the results very similar?
+Re-calculate the p-value from problem 7, but use a standard normal distribution instead of a $T_{n-1}$ distribution.  Why are the results very similar?
 
 
 
