@@ -1,0 +1,79 @@
+---
+title: "week9-live"
+output: html_document
+date: "2025-10-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#number of prosocial choices Chimp A makes when he has a partner
+
+n = 90 
+x = 60
+(p_hat = x/n)
+
+# build a confidence interval of 90% confidence
+
+(cv = qnorm(0.95))
+(se_hat = sqrt(p_hat*(1-p_hat)/n))
+p_hat + c(-1, 1)*cv*se_hat # wald conf interval
+
+(p_hat_ac = (x+2)/(n+4))
+(se_hat_ac = sqrt(p_hat_ac*(1-p_hat_ac)/(n+4)))
+p_hat_ac + c(-1, 1)*cv*se_hat_ac # agressti coulle intervl
+```
+
+
+```{r}
+#x # test statistic
+
+(pval = pbinom(59, 90, 0.5, lower.tail = F)) # alpha = 0.1 or 10%
+  
+#p_hat # test statistic
+
+pnorm(p_hat, 0.5, sqrt(0.25/90), lower.tail = F) # p-val if we use p hat as the test statistic
+
+pnorm((p_hat- 0.5)/ sqrt(0.25/90), lower.tail = F) # if we standardize the p_hat to get the test statistic, this is the pval for that
+```
+
+
+```{r}
+x1 = 16
+n1 = 30
+x2 = 60
+n2 = 90
+
+p1_hat = x1/n1
+p2_hat = x2/n2
+p = (x1+x2)/(n1+n2) # global proportion the estimator for both p1 and p2
+
+p
+
+pvl = pnorm((-p1_hat + p2_hat)/(sqrt(p*(1-p)/n1 + p*(1-p)/n2)), lower.tail = F)
+pvl
+```
+
+```{r}
+# 99% Confidence Interval, (1-0.01)100%
+
+alpha = 0.01
+p1_hat_AC = (x1+1)/(n1+2)
+p2_hat_AC = (x2+1)/(n2+2)
+(p.e = p2_hat_AC - p1_hat_AC)
+(cv = qnorm(1-alpha/2))
+s.e = sqrt(p1_hat_AC*(1-p1_hat_AC)/(n1+2) + p2_hat_AC*(1-p2_hat_AC)/(n2+2))
+
+p.e + c(-1,1)*cv*s.e
+```
+
+
+
+
+
+
+
+
+
