@@ -1,0 +1,109 @@
+---
+title: "Homework 10"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/homework/hw10` on your local computer.
+- Download `parental_leave.csv` and `happiness_2019` to `STAT240/data`.
+
+
+# Problem 1
+
+Continue working with the parental leave data from homework 9.
+
+```{r}
+leave <- read_csv("../../data/parental_leave.csv")
+
+# Remove spaces from column names
+names(leave) <- make.names(names(leave))
+
+# Tidy numeric columns
+leave <- leave %>%
+  mutate_at(vars(Paid.Maternity.Leave, Unpaid.Maternity.Leave,
+                 Paid.Paternity.Leave, Unpaid.Paternity.Leave),
+            as.numeric) %>%
+  replace(is.na(.), 0)
+```
+
+(a) Re-do the basic data tidying from homework 9 problem 5(a): Mutate a column for total paid leave by adding the hours of paid maternity and paternity leave. Optionally, give the columns shorter names that are easier to reference.
+
+(b) Consider comparing companies in "Educational Services: College & Universities" (ESCU) to companies in "Healthcare: Hospitals & Clinics" (HHC).  Build a 95% CI for the difference in average total paid leave and interpret the results.
+
+
+# Problem 2
+
+Does the educational industry give more paid leave than the healthcare industry?  Perform a hypothesis test of 
+$$H_0: \mu_{ESCU} - \mu_{HHC} = 0 \quad \text{versus}\quad H_A: \mu_{ESCU} - \mu_{HHC} > 0$$
+with $\alpha = 0.05$.  Check your results with `t.test()`.
+
+
+# Problem 3
+
+Repeat the test in problem 2, but instead write hypotheses for $\mu_{HHC} - \mu_{ESCU}$ (the order of subtraction is switched).  Show that you get identical results to problem 2.
+
+
+# Problem 4
+
+Now, consider the "Technology: Software" industry.  Perform the appropriate hypothesis test to determine whether there is a difference in paid maternity and paternity leave within this industry.
+
+
+# Problem 5
+
+Match the six values of correlation to the scatterplots in `p5_choices.png`. Briefly justify your choices.
+
+- $r = -0.85$
+
+- $r = -0.74$
+
+- $r = 0.08$
+
+- $r = 0.44$
+
+- $r = 0.98$
+
+- $r = 1$
+
+
+# Problem 6
+
+The [Happiness index](https://www.kaggle.com/datasets/sougatapramanick/happiness-index-2018-2019) data contains information on the happiness index of different countries from 2018-2019.  We will focus on the happiness index (`Score`) and GDP per capita of countries in 2019.
+
+```{r}
+happiness <- read_csv("../../data/happiness_2019.csv")
+
+# Remove spaces from column names
+names(happiness) <- make.names(names(happiness))
+```
+
+(a) Create a scatterplot of GDP per capita (x) versus happiness index (y) and calculate the correlation between length and weight.  Comment on the strength and magnitude of the linear relationship, and whether a linear model seems to be appropriate
+
+(b) Calculate the slope and intercept of a least-squares linear regression model for GDP per capita versus happiness index.  Do this with the "by hand formulas" and check your work with R `lm()`.  Interpret the coefficients in context.
+
+(c) Perform a residual analysis of the happiness linear model to assess the fit.  Build a scatterplot of residuals and comment on the three assumptions:
+
+- Linearity
+- Normality
+- Constant variance
+
+
+# Problem 7
+
+Using your linear model, predict the happiness index for theoretical countries with 0.75, 1.25, and 2 GDP per capita.  Which of these predictions would you consider to be the least reliable, and why?
+
+
+# Problem 8
+
+What are the conclusions we can make about the relationship between GDP per capita and happiness index, based on the linear model?  Does money buy happiness?
+
+
