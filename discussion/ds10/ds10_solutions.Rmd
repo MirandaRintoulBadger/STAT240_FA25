@@ -1,0 +1,164 @@
+---
+title: "Discussion 10"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds10`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to think about proportion inference and one-sample mean inference in more detail.  We'll also look at dissecting confidence intervals and hypothesis tests in different ways.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+We have seen how to perform a two-sample proportion test against a difference of zero. Now, consider a test where the null difference in proportions is not zero:
+$$H_0: p_1 - p_2 = 0.2 \quad\text{versus}\quad H_A: p_1 - p_2 \neq 0.2$$
+Show how this test would be performed if we have two groups of data with $\hat{p}_1 = 0.5$, $\hat{p}_2 = 0.35$, $n_1 = 80$, and $n_2 = 120$. Use $\alpha = 0.05$. *The test statistic is not the same as if we were testing $p_1 - p_2 = 0$!*
+
+<span style="color:#5858d0"> When testing for a difference of 0, we start by assuming that $p_1 = p_2 = p$. $p$ is the common proportion, estimated with $\hat{p}$. However, our null hypothesis of a difference of 0.2 does not make that assumption, so we would want to use the more general form of standard error. The standard error of the difference in proportions is 
+$$se(\hat{p}_1 - \hat{p}_2) \;=\; \sqrt{\frac{p_1(1-p_1)}{n_1} + \frac{p_2(1-p_2)}{n_2}}.$$
+Since we cannot simplify this expression anymore, we use the more general standard error (estimated from our data) in the denominator of our test statistic.  Our test statistic is
+$$z_{obs} \;=\; \frac{\hat{p}_1 - \hat{p}_2 - 0.2}{\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1} + \frac{\hat{p}_2(1-\hat{p}_2)}{n_2}}} \;=\; \frac{0.5 - 0.35 - 0.2}{\sqrt{\frac{0.5(1-0.5)}{80} + \frac{0.35(1-0.35)}{120}}} \;=\; -0.706.$$
+</span>
+
+```{r, class.source="soln", class.output="soln"}
+phat1 <- 0.5; phat2 <- 0.35
+n1 <- 80; n2 <- 120
+
+se <- sqrt(phat1*(1-phat1)/n1 + phat2*(1-phat2)/n2)
+
+test_stat <- (phat1 - phat2 - 0.2)/se
+test_stat
+```
+
+<span style="color:#5858d0"> The p-value is $2\times P(Z \le -0.706) = 0.48$. This is much larger than our significance level of 0.05, so we would fail to reject the null.  We do not have evidence that the true difference in proportions is not 0.2. </span>
+
+```{r, class.source="soln", class.output="soln"}
+2*pnorm(test_stat)
+```
+
+
+# Problem 2
+#### (approx. 20 minutes)
+
+In statistics, we often have an idea of what a desirable or informative result looks like. We ask, "What qualities must our analysis have to acheive this result?" Perform these calculations for the three separate examples below.
+
+(a) Consider building a T confidence interval with $n = 35$ observations based on a sample with sample sd $s = 8.4$. What is the biggest confidence level (smallest $\alpha$) we can use if we want to have margin of error less than 3?
+
+<span style="color:#5858d0"> The margin of error is given by the critical value $t_{35, \alpha/2}$ multiplied by the standard error $\frac{s}{\sqrt{n}}$.  We have
+$$MoE \;=\; 3 \;=\; t\cdot \frac{8.4}{35} \quad \Rightarrow \quad t \;=\; 2.113$$
+So, 2.113 is the quantile that cuts off $\alpha/2$ area in the upper tail of the T curve. To find $\alpha/2$, use `pt()`. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pt(2.113, df = 34, lower.tail = F)
+```
+
+<span style="color:#5858d0"> We get $\alpha/2 = 0.02$ which means $\alpha = 0.04$. This corresponds to 96% confidence.  We need a CI with level 96% or lower to get our desired margin of error. </span>
+
+(b) A 95% Wald confidence interval will be used to obtain an estimate for an unknown population proportion $p$. What is the smallest sample size that will guarantee a margin of error of at most 0.08?
+
+<span style="color:#5858d0"> The margin of error for a 95% Wald proportion Z CI is given by
+$$1.96\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
+where 1.96 is the 97.5 percentile of the standard normal.  We set this equal to 0.08 and solve for $n$. The last value we need is $\hat{p}$. We want to guarantee that our margin of error will be 0.08 or less, for any $\hat{p}$. We have to pick the "worst" $\hat{p}$ that corresponds to the largest possible standard error, to make sure our $n$ will always work. The standard error is largest when $\hat{p} = 0.5$.  So,
+$$0.08 = 1.96\cdot \sqrt{\frac{0.5(0.5)}{n}} \quad \Rightarrow \quad n = \Big(\frac{1.96}{0.08}\Big)^2 \cdot 0.25 = 150.06$$ </span>
+
+```{r, class.source="soln", class.output="soln"}
+n <- (1.96/0.08)^2 * 0.25
+n
+```
+
+<span style="color:#5858d0"> We can then round this up to be $n = 151$. Because this value of $n$ gives us a small enough margin of error for the worst-case $\hat{p}$, the margin of error will also be smaller than 0.08 for any other value of $\hat{p}$. </span>
+
+(c) We are performing a one-sided T hypothesis test of 
+$$H_0: \mu = 5 \quad \text{versus}\quad H_A: \mu > 5$$
+with $s = 43.1$ and $n = 150$. How large does the observed sample mean $\bar{x}$ need to be to see a one-sided p-value of 0.05?  *Start with the formula for a test statistic, then solve for $\bar{x}$.  What value goes on the other side of your equation?*
+
+<span style="color:#5858d0"> For $n = 150$, the p-value of 0.05 is calculated on a $t_{149}$ distribution. The test statistic must correspond to the 95th percentile of $t_149$ for the p-value (area above) to be 0.05. </span>
+
+```{r, class.source="soln", class.output="soln"}
+test_stat <- qt(0.95, df = 149)
+test_stat
+```
+
+<span style="color:#5858d0"> So, a test statistic of 1.655 or greater results in us rejecting the null hypothesis. Now, we can use the test statistic formula with 5, $s$, and $n$ and solve for $\bar{x}$. 
+$$1.655 = \frac{\bar{x} - 5}{43.1/\sqrt{150}} \quad \Rightarrow \quad \bar{x} = 1.655\cdot \frac{43.1}{\sqrt{150}} + 5 = 10.825$$ </span>
+
+```{r, class.source="soln", class.output="soln"}
+xbar <- test_stat * (43.1/sqrt(150)) + 5
+xbar
+```
+
+<span style="color:#5858d0"> To get a p-value greater than 0.05, we would need to observe a sample mean $\bar{x}$ of at least 10.825, or 5.825 higher than the
+null value of 5. </span>
+
+(d) In the previous three parts, we worked with the significance level $\alpha$, the sample size $n$, and the sample mean $\bar{X}$. Which of these three quantities would it be most logical to manipulate, as a researcher? Explain your choice.
+
+<span style="color:#5858d0"> It would make the most sense to adjust the sample size $n$.  We can improve our estimates and our hypothesis tests by taking a larger sample of data.  It does not make sense to manipulate $\bar{X}$, since that value comes from observing data. </span>
+
+<span style="color:#5858d0"> Even though we can control $\alpha$, it's also not a good idea to change this quantity to get a better result.  Best practice is to set $\alpha$ ahead of time according to how much risk we are comfortable with. </span>
+
+
+# Problem 3
+#### (approx. 10 minutes)
+
+Using a sample of $n = 48$ points, a 98% T confidence interval for $\mu$ is reported as $(490.2, 584.6)$.
+
+(a) Identify the point estimate and margin of error of this interval.
+
+<span style="color:#5858d0"> The point estimate is the midpoint of the interval, $\frac{490.2 + 584.6}{2}$.  The margin of error is the half-width of the interval, $\frac{584.6 - 490.2}{2}$.
+
+```{r, class.source="soln", class.output="soln"}
+pt_est <- (490.2 + 584.6) / 2
+moe <- (584.6 - 490.2) / 2
+
+pt_est; moe
+
+# This recreates the original interval
+c(pt_est - moe, pt_est + moe)
+```
+
+(b) Re-create the 98% interval, but use a Z critical value from N(0, 1) instead of a T critical value.  How does this interval compare to $(490.2, 584.6)$?
+
+<span style="color:#5858d0"> The margin of error 47.2 above was calculated as standard error times the T critical value.  Let's first solve for the original standard error. </span>
+
+```{r, class.source="soln", class.output="soln"}
+se <- moe / qt(0.99, df = 47)
+se
+```
+
+<span style="color:#5858d0"> To get the margin of error for a Z confidence interval, we need to multiply this standard error by the same critical value taken from $N(0, 1)$ instead of the T distribution. </span>
+
+```{r, class.source="soln", class.output="soln"}
+moe_z <- se * qnorm(0.99)
+
+c(pt_est - moe_z, pt_est + moe_z)
+```
+
+<span style="color:#5858d0"> The Z confidence interval is (491.8, 583) which is slightly narrower than the original T confidence interval. </span>
+
+(c) What assumptions/approximations are we making when we use a standard normal distribution to make inference on $\mu$?  Under what conditions would a Z confidence interval for $\mu$ be exact?
+
+<span style="color:#5858d0"> The extra width of the T confidence interval, which corresponds to the extra spread on a T curve compared with the Z curve, comes from the error in using $s$ (sample standard deviation) to estimate $\sigma$ (population standard deviation).  When we build and report a Z CI, we are assuming that this error is negligible, i.e. $s$ is a very good estimate for $\sigma$.  This is the case when $n$ is large. </span>
+
+<span style="color:#5858d0"> The Z confidence interval for $\mu$ is only exact when $\sigma$, the population sd is known. </span>
+
+
+
+
