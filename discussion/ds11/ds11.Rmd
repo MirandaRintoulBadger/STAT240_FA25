@@ -1,0 +1,137 @@
+---
+title: "Discussion 11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds11`.
+- The file `example_lm_data.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to think about different ways of studying two separate populations.  You'll also get to see a few highly questionable linear models.
+
+
+# Problem 1
+#### (approx. 10 minutes)
+
+Consider exploring the formula for Welch degrees of freedom for a two-sample T test.
+
+(a) Create a dataframe with the following columns: 
+
+- `s1`, with values 1 through 40, repeated 40 times.
+- `s2`, with values 1 through 40, repeated 40 times, so that we have 1600 unique combinations of `s1` and `s2`.
+- `w_df`, the Welch degrees of freedom evaluated for each combination of `s1` and `s2`.  Use n1 = n2 = 20 and `round()` to 3 decimal points to avoid precision errors with R.
+
+    Think about how to use the `rep()` function cleverly to get every different combination of `s1` and `s2` without any repeat rows.
+
+(b) What are the minimum and maximum values of `w_df` in your the data?  What are the corresponding values of `s1` and `s2`?
+
+(c) Use ggplot with `geom_tile()` to create a heat-map plot of your dataframe with `s1` and `s2` on the x and y axes and the tiles colored by `w_df` in a color scheme of your choice. 
+
+(d) Based on the results of (b) and (c), interpret the relationship between the size of `s1` and `s2` and the Welch degrees of freedom.
+
+
+# Problem 2
+#### (approx. 10 minutes)
+
+We can use a two-sample Welch T confidence interval or T hypothesis test to compare two population means.  Consider this method instead: separately calculate a one-sample T confidence interval for both groups, and see if the intervals intersect. If the intervals do not intersect, we have evidence that the group means are different.
+
+Below are two samples of data of size 25 taken from two independent populations.
+
+```{r}
+group1 <- c(34.91, 46.10, 22.96, 25.17, 13.65, 11.25, 6.96, 18.53, 3.93,
+            32.36, 29.19, 23.03, 37.30, 22.19, 10.05, 23.93, 17.58, 22.07,
+            19.97, 68.45, 15.45, 21.17, 19.10, 23.26, 34.56)
+
+group2 <- c(51.95, 47.23, 28.88, 28.89, 45.21, 33.03, 16.20, 35.50, 29.82,
+            16.23, 35.23, 35.60, 20.06, 38.33, 26.14, 47.16, 38.66, 23.57,
+            43.32, 24.65, 28.66, 29.75, 39.98, 20.81, 26.70)
+```
+
+(a) Perform a Welch T test of a difference in means with $\alpha = 0.05$.  Also compute 95% one-sampel T confidence intervals for each separate group. You can use `t.test()` for this.  
+
+(b) Compare the results in part (a).  Do the methods support concluding a difference in means or not?  Why might the methods be different? Which test appears to be more conservative, i.e. less likely to detect a difference?
+
+(c) The simulation below takes a sample from population 1 with $\mu_1 = 24, \sigma_1 = 10$ and from population 2 with $\mu_2 = 32, \sigma_2 = 10$.  It builds a $100(1 - \alpha)$ CI for each group (95% CIs by default) and then repeats this entire process 10000 times.
+
+    The chunk will output a dataframe, `sim_CIs`, containing the upper and lower bounds for the CIs for groups 1 and 2 for each run of the experiment.  Use `dplyr` to calculate the percentage of time (out of the 10000 runs) that the CIs for groups 1 and 2 do not overlap.
+    
+```{r}
+# Set confidence level
+alpha <- 0.05
+
+# Repeat 10000 times
+iter <- 10000
+
+# Vectors to store CI bounds
+group1_CI_lower <- numeric(iter)
+group1_CI_upper <- numeric(iter)
+group2_CI_lower <- numeric(iter)
+group2_CI_upper <- numeric(iter)
+
+set.seed(32948)
+
+for(i in 1:iter){
+  samp1 <- rnorm(25, 24, 10)
+  samp2 <- rnorm(25, 32, 10)
+  
+  group1_CI_lower[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[1]
+  group1_CI_upper[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[2]
+  group2_CI_lower[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[1]
+  group2_CI_upper[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[2]
+}
+
+# Compile results in dataframe
+
+sim_CIs <- tibble(group1_CI_lower,
+                  group1_CI_upper,
+                  group2_CI_lower,
+                  group2_CI_upper)
+```
+
+(d) Play with the value of `alpha` set at the beginning of the simulation.  About how large does `alpha` need to be before the percentage of non-overlapping intervals is about 0.95?
+
+
+# Problem 3
+#### (approx. 10 minutes)
+
+Identify whether each of the datasets described below are paired or independent samples.  Briefly explain your choices.
+
+(a) Measurements of annual income taken both before and after a two-year training course for a random sample of 100 people who took the course.
+
+(b) Measurements of annual income for a random sample of 100 people who took the two-year training course and another random sample of 100 people who did not take the course.
+
+(c) Measurements of annual income for both individuals in pairs formed by assigning 100 people to pairs at random.
+
+(d) Measurements of annual income 100 randomly selected pairs of twins that have one female and one male twin.
+
+(e) Measurements of annual income recorded for both partners of 100 randomly selected couples.
+
+
+# Problem 4
+#### (approx. 15 minutes)
+
+The dataset `example_lm_data.csv` contains four sets of (x, y) pairs.  
+
+```{r}
+lm_data <- read_csv("../../data/example_lm_data.csv")
+```
+
+(a) Use R to fit a linear model on each dataset (four linear models total).  Also calculate the correlation between each set of (x, y) pairs.  What do you notice about the four sets of data?
+
+(b) Now, use `ggplot()` with `geom_point()` and `geom_smooth()` to make scatterplots of each dataset with its respective linear model.  What can be said about the data now that we can see it?  Which set of data is most appropriately described by the linear model?
+
+After completing the activity, you can read more about this example [here](https://medium.com/@marc.bolle/datasaurus-dozen-visualization-using-python-d328dad64d20).
+
+
+
+
