@@ -56,7 +56,7 @@ c(pt_est - cv*se, pt_est + cv*se)
 Build a 98% CI for the slope of the Lake Monona model.
 
 ```{r}
-monona <- read_csv("../../data/lake-monona-winters-2024.csv")
+monona <- read_csv("../../data/lake-monona-winters-2025.csv")
 lake_mod <- lm(duration ~ year1, data = monona)
 
 n <- nrow(monona)
