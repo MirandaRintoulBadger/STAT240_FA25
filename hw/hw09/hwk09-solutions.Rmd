@@ -1,0 +1,301 @@
+---
+title: "Homework 9"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/homework/hw09` on your local computer.
+- Download `parental_leave.csv` to `STAT240/data`.
+
+
+# Problem 1
+
+(Fictional data): In a survey done in 2000, 63 out of 500 American households reported serving only vegetarian or vegan dishes for Thanksgiving.  In a similar survey done in 2024, the number of reported households serving only vegetarian or vegan dishes was 116 out of 500.
+
+Based on this data, a Z Agresti-Coffe confidence interval for a difference in proportions (2000 - 2024) was reported as 
+
+$$(-0.1451, -0.0660)$$
+
+Identify the confidence level that was used to create this interval.
+
+<span style="color:#5858d0"> The interval was made with the formula point estimate $\pm$ critical value $\times$ standard error, where the critical value was determined by the confidence level.  So, we need to solve for the critical value.  This is the margin of error divided by the (AC-adjusted) standard error. </span>
+
+```{r, class.source="soln", class.output="soln"}
+# Margin of error: half-width of interval
+moe <- (-0.0660 + 0.1451) / 2
+
+# SE with AC adjustment
+x1 <- 63; x2 <- 116
+n1 <- 500; n2 <- 500
+
+n1_ac <- n1 + 2; n2_ac <- n2 + 2
+
+phat1_ac <- (x1+1)/n1_ac; phat2_ac <- (x2+1)/n2_ac
+
+se <- sqrt(phat1_ac*(1-phat1_ac)/n1_ac + phat2_ac*(1-phat2_ac)/n2_ac)
+
+# Solve for critical value
+cv <- moe / se
+cv
+```
+
+<span style="color:#5858d0"> The critical value/multiplier used to create the interval is about 1.646.  So, 1.646 is the quantile that cuts off $\alpha/2$ area in the upper tail of the standard normal curve. To find $\alpha/2$, use `pnorm()`. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pnorm(cv, lower.tail = F)
+```
+
+<span style="color:#5858d0"> We get $\alpha/2 = 0.05$ which means $\alpha = 0.1$. This corresponds to 90% confidence. We can re-create the original interval with `qnorm(0.95)`. </span>
+
+```{r, class.source="soln", class.output="soln"}
+original_cv <- qnorm(0.95)
+
+pt_est <- phat1_ac - phat2_ac
+
+c(pt_est - original_cv*se, pt_est + original_cv*se)
+```
+
+
+# Problem 2
+
+The human sex ratio at birth slightly favors boys (abouth 50.7% to 51.5% of live births are boys).  The "[returning soldier effect](https://en.wikipedia.org/wiki/Returning_soldier_effect)" is a phenemonon where more boys are born immediately following crises such as war.
+
+In the year 1940, before the US joined World War II, there were 1211684 male and 1148715 female live births in the US.  In the year 1946, after WWII ended, there were 1691220 male and 1597452 female live births in the US.
+
+Build a 95% confidence interval on the difference in proportion of male births between 1940 and 1946 and use the Agresti-Coffe adjustment.  Interpret your results in context.
+
+```{r, class.source="soln", class.output="soln"}
+# Counts of total births and boy births
+n1 <- 1211684 + 1148715
+x1 <- 1211684
+n2 <- 1691220 + 1597452
+x2 <- 1691220
+
+# Make AC adjustment to both groups
+n1_ac <- n1 + 2
+n2_ac <- n2 + 2
+
+phat1_ac <- (x1 + 1) / (n1_ac)
+phat2_ac <- (x2 + 1) / (n2_ac)
+
+pt_est <- phat1_ac - phat2_ac
+
+# Standard error with AC adjustment
+se <- sqrt(phat1_ac*(1 - phat1_ac)/n1_ac + phat2_ac*(1 - phat2_ac)/n2_ac)
+
+# Critical value
+cv <- qnorm(0.975)
+```
+
+<span style="color:#5858d0"> The point estimate is the observed difference in proportions, after adding 1 success and 1 failure to each group.  This is about -0.0009.  The standard error with the AC adjustment is 0.0004.  Finally, the Z critical value for 95% confidence is $z_{0.025} = 1.96$. </span>
+
+```{r, class.source="soln", class.output="soln"}
+# Find upper and lower bounds of interval
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+<span style="color:#5858d0"> We are 95% confident that the difference in the proportion of boy births between 1940 and 1946 is within (-0.0017, -0.00008).  The interval endpoints are both negative. </span>
+
+
+# Problem 3
+
+Perform a hypothesis test to determine whether the proportion of male births in the US in 1946 is greater than the proportion of male births in the US in 1940.  Write appropriate one-sided hypotheses and draw a conclusion with $\alpha = 0.05$.
+
+<span style="color:#5858d0"> Our two-sided hypotheses are 
+$$H_0: p_{boy, 1940} = p_{boy, 1946} \quad \text{versus} \quad H_A: p_{boy, 1940} < p_{boy, 1946}$$ or $$H_0: p_{boy, 1940} - p_{boy, 1946} = 0 \quad \text{versus} \quad H_A: p_{boy, 1940} - p_{boy, 1946} < 0$$
+Our point estimate is the difference in proportions *without* the AC adjustment.  We also need to calculate a standard error with a pooled proportion of funny ads, which we estimate with $$\frac{x_1 + x_2}{n_1 + n_2}$$ </span>
+
+```{r, class.source="soln", class.output="soln"}
+# Counts of total births and boy births
+n1 <- 1211684 + 1148715
+x1 <- 1211684
+n2 <- 1691220 + 1597452
+x2 <- 1691220
+
+p_hat <- (x1 + x2)/(n1 + n2) # Estimated common proportion
+
+numerator <- (x1/n1) - (x2/n2)  # Observed difference in proportions
+
+denominator <- sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2))  # SE using common proportion
+
+test_stat <- numerator/denominator
+test_stat
+```
+
+<span style="color:#5858d0"> We get an observed test statistic of $\frac{\hat{p}_{boy, 1940} - \hat{p}_{boy, 1946}}{\hat{se}} = -2.152$.  Under $H_0$, this value was drawn from a standard normal curve.  For our one-sided p-value, we calculate $P(Z < -2.152)$. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pnorm(-2.152)
+```
+
+<span style="color:#5858d0">  We get a p-value of 0.016 which is smaller than $\alpha = 0.05$, so we reject $H_0$.  We have evidence of a greater proportion of boys born in the US in 1946 compared to 1940. </span>
+
+
+# Problem 4
+
+The p-value for a two-sided T test of the hypotheses $H_0: \mu = 15$ versus $H_A: \mu \neq 15$ is 0.03.
+
+(a) Does the 99% T confidence interval for $\mu$ using this same sample include 15? Why or why not?
+
+<span style="color:#5858d0">  A 99% confidence interval is very wide and is equivalent to a 1% hypothesis test. This requires a very extreme $\bar{x}$ (a p value of at most 0.01 to reject the null) so since 0.03 > 0.01 the confidence interval will contain the null value of 15. </span>
+
+(b) Does the 95% T confidence interval for $\mu$ using this same sample include 15? Why or why not?
+
+<span style="color:#5858d0"> A 95% confidence interval is less wide than a 99% with the same sample data and is equivalent to a 5% hypothesis test. Since 0.03 < 0.05, the confidence interval will not contain 15 (15 is not a plausible value at
+the 5% level). </span>
+
+
+# Problem 5
+
+The file `parental_leave.csv` contains information on crowdsourced parental leave data for 1601 different companies.  
+
+```{r}
+leave <- read_csv("../../data/parental_leave.csv")
+
+# Remove spaces from column names
+names(leave) <- make.names(names(leave))
+
+# Tidy numeric columns
+leave <- leave %>%
+  mutate_at(vars(Paid.Maternity.Leave, Unpaid.Maternity.Leave,
+                 Paid.Paternity.Leave, Unpaid.Paternity.Leave),
+            as.numeric) %>%
+  replace(is.na(.), 0)
+```
+
+(a) Mutate a column for total paid leave by adding the hours of paid maternity and paternity leave. Optionally, give the columns shorter names that are easier to reference.
+
+```{r, class.source="soln", class.output="soln"}
+leave <- leave %>%
+  rename(mat_paid = Paid.Maternity.Leave,
+         pat_paid = Paid.Paternity.Leave,
+         mat_unpaid = Unpaid.Maternity.Leave,
+         pat_unpaid = Unpaid.Paternity.Leave) %>%
+  mutate(total_paid = mat_paid + pat_paid)
+```
+
+(b) Filter the data to only include the "Educational Services: College & Universities" industry.  Create a histogram of total paid leave and comment on its shape.
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+```{r, class.source="soln", class.output="soln"}
+leave %>%
+  filter(Industry == "Educational Services: College & Universities") %>%
+  ggplot(aes(x = total_paid)) +
+  geom_histogram()
+```
+
+```{r, echo=F}
+theme_set(old)
+```
+
+<span style="color:#5858d0"> The histogram is right-skewed, with one very prominent outlier.</span>
+
+(c) Comment on why a T test for the mean might still be an appropriate method, even though the total paid leave data does not look normal.
+
+<span style="color:#5858d0"> The T test for the mean is based on the CLT, which says that the sample mean will be approximately normal for large enough n.  We have 52 observations, which is probably large enough to account for the fact that our underlying population is very skewed. <\span>
+
+
+# Problem 6
+
+Build a 98% T CI for the average total paid leave of companies in "Educational Services: College & Universities", and interpret the results.
+
+(a) First, calculate and save the summary values.
+
+```{r, class.source="soln", class.output="soln"}
+leave_escu <- leave %>%
+  filter(Industry == "Educational Services: College & Universities") %>%
+  summarize(avg_leave = mean(total_paid), sd_leave = sd(total_paid), n = n())
+
+xbar <- leave_escu$avg_leave
+s <- leave_escu$sd_leave
+n <- leave_escu$n
+```
+
+(b) Calculate the point estimate and standard error from the data.  Find a T critical value with $n - 1$ degrees of freedom based on $\alpha = 0.02$ and use this to construct the CI.
+
+```{r, class.source="soln", class.output="soln"}
+pt_est <- xbar
+se <- s/sqrt(n)
+
+cv <- qt(0.99, df = n-1)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+<span style="color:#5858d0"> We are 98% confident that the true average total paid leave (for the College & Universities industry) is within (6.824, 11.964). </span>
+
+
+# Problem 7
+
+Perform a test at the 2% level to determine whether the "Educational Services: College & Universities" average total paid leave is greater than 10 weeks.  State hypotheses, report a test statistic and p-value. You must do this by hand, then check your results with `t.test`.
+
+<span style="color:#5858d0"> Our hypotheses need to reflect that we are looking for a value greater than 10, not just different from 10.  Let $\mu$ refer to the true average total paid leave for this industry.  We have:
+$$H_0: \mu \le 10 \quad \text{versus}\quad H_A: \mu > 10$$
+</span> 
+
+<span style="color:#5858d0">  Next, we calculate a test statistic to compare our observed mean to the value 10.  We calculate a p-value on the T with $n - 1$ degrees of freedom by looking at the area above our test statistic (since we have a "greater than" alternative). </span>
+
+```{r, class.source="soln", class.output="soln"}
+test_stat <- (xbar - 10) / (s / sqrt(n))
+
+test_stat
+
+pt(test_stat, df = n-1, lower.tail = F)
+```
+
+<span style="color:#5858d0">  We have a negative test statistic -0.566, since our observed mean is actually less than 10.  This results in a very large p-value of 0.713.  We fail to reject $H_0$ and we do not have evidence that the mean total paid leave is greater than 10 hours.  We can confirm this with `t.test`. </span>
+
+```{r, class.source="soln", class.output="soln"}
+obs_leave <- leave %>%
+  filter(Industry == "Educational Services: College & Universities") %>%
+  pull(total_paid)
+  
+t.test(obs_leave, mu = 10, alternative = "greater")
+```
+
+
+# Problem 8
+
+Re-calculate the p-value from problem 7, but use a standard normal distribution instead of a $T_{n-1}$ distribution.  Why are the results very similar?
+
+```{r, class.source="soln", class.output="soln"}
+pnorm(test_stat, lower.tail = F)
+```
+
+<span style="color:#5858d0">  We get a p-value of 0.714, as opposed to the earlier p-value of 0.713.  We have a fairly large number of observations, which means that our T degrees of freedom (51) are also large.  As the degrees of freedom increase, the T curve starts to resemble a standard normal.  So, we get very similar results if we use a T null distribution or a N(0, 1) null distribution. </span>
+
+
+
+
+
+
+
+
+
+
