@@ -1,0 +1,294 @@
+---
+title: "Section 17: The Bob Ross Case Study"
+author: "Cameron Jones, Miranda Rintoul"
+date: "Fall 2025"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      error = TRUE, fig.height = 4)
+library(tidyverse)
+
+theme_set(theme_minimal())
+```
+
+# Overview
+
+## Learning Outcomes
+
+* The purpose of this case study is to **review** the principles we have learned and to **practice** interactively on a real case study.  There may be a few new functions.
+
+* Another purpose of this case study is to **celebrate** how much you all have learned this semester! 
+    
+## Preliminaries
+
+* You will need the `tidyverse` package which you should have from previous lectures.
+
+* Files to download to `STAT240/lecture/17-bob-ross`:
+    - `17_bob_ross.Rmd`
+    - `17_bob_ross_HINTS.Rmd`
+    - `17_bob-ross_solutions.Rmd` (later, when posted)
+    
+* Files to download to `STAT240/data`
+    - `elements-by-episode.csv`
+    - `bob_ross_paintings.csv`
+    
+    
+# Background
+
+Inspiration and a dataset for this case study comes from FiveThirtyEight's 2014 article, [A Statistical Analysis of the Work of Bob Ross](https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/).
+
+---
+
+* *"The Joy of Painting"* (TJOP) was a PBS show which ran from 1983 to 1994, for a total of 403 episodes. It was primarily hosted by Bob Ross.
+
+* Each episode [(example)](https://www.youtube.com/watch?v=lLWEXRAnQd0&list=PLAEQD0ULngi67rwmhrkNjMZKvyCReqDV4) was half an hour, over which Bob (or the guest host) would guide the viewer through their process of painting a nature scene. 
+
+* Bob Ross became well known for his slow, soothing voice, the gentle positivity of his shows, and his iconic catchphrases (such as "happy little trees", and "there are no mistakes, just happy accidents").
+
+
+# 1. Elements by Episode
+
+* Our first dataset, `elements-by-episode.csv`, is courtesy of FiveThirtyEight, and can be found [here](https://github.com/fivethirtyeight/data/tree/master/bob-ross).
+    - This is the dataset used in the background article cited above.
+    - The authors of the FiveThirtyEight article manually watched and coded all 403 episodes of *The Joy Of Painting* to generate this dataset.
+
+* Each of the 403 rows of `elements-by-episode.csv` represents one painting. This is equivalent to representing one episode, since there was exactly one painting each episode.
+
+
+```{r}
+all_elements <- read_csv("../../data/elements-by-episode.csv")
+head(all_elements)
+```
+
+* There are **69** columns in `all_elements`. `EPISODE` is a unique identifier for each episode, and takes on values like `S01E02` to indicate "first season, second episode".
+
+* `TITLE` is the name of the painting/episode, e.g. `"MT. MCKINLEY"`. Note that the values of `TITLE` have quotes on either side built into them. That might be annoying later. We also hesitate to say if `TITLE` is a unique identifier, as they may be repeated (as we are about to investigate).
+
+* The other 67 columns are potential features of the painting, such as `BARN`, `BEACH`, or `BRIDGE` which have value `0` if that painting did NOT contain that feature, and value `1` if that painting DID contain that feature.
+    - Some features are redundant with each other.
+    - For example, `TREE` indicates the presence of any tree, while `CONIFER`, `DECIDUOUS`, and `PALM_TREES` indicate more specific types of tree.
+
+
+## 1.1 Are Any Titles Repeated?
+
+* Knowing which variables uniquely identify each row of your dataframe is crucial for many data operations, including `join`s, which we will eventually use.
+
+* Is the variable `TITLE` a unique identifier?
+
+```{r}
+# Write code to determine if which values of TITLE, if any, appear multiple times.
+
+```
+
+* "LAKESIDE CABIN" (S08E02, S10E13) and "MOUNTAIN WATERFALL" (S02E12, S05E01) are used twice.
+
+* `TITLE` is NOT a unique identifier, but `EPISODE` is.
+
+
+## 1.2 Which Features Appear The Most?
+
+* Now, let's investigate which features appear the most.
+
+* The [data description](https://github.com/fivethirtyeight/data/blob/master/bob-ross/README.md) doesn't tell you what each column is... which can be an issue since *not every column in the dataframe represents a feature of the painting itself*. 
+    - Some of them are the type of frame the host eventually puts the painting in, e.g. `APPLE_FRAME` and `CIRCLE_FRAME`. All of these variables contain the phrase `FRAME`.
+    - Some of them indicate the host if it wasn't Bob Ross; `DIANE_ANDRE`, his son `STEVE_ROSS`, or the more general guest, which is 0 when Bob hosts and 1 when someone else hosts.
+    
+* What are the features that appear in the paintings made by Bob Ross himself?
+    
+```{r}
+# Write code here to remove the frame and host columns and filter to Bob Ross' episodes. 
+# Save this dataframe, which has just EPISODE, TITLE, and the painting-based features, to painting_elements.
+
+
+# painting_elements should have 381 rowsand 50 columns. 
+#dim(painting_elements)
+```
+
+* Write code which produces a dataframe indicating the percentage of paintings in which each feature appears. 
+
+* We have 48 features (each with their own column) to summarize, too many to manually list out!  So, we use pivoting and grouping.
+
+
+```{r}
+# We want to have each row be a different painting-feature combination.
+# There should be a column for the feature and a column for whether or not it appears.
+
+
+
+# We should end up with 381 Bob Ross episodes x 48 features = 18,288 rows.
+```
+
+```{r}
+# Now, we can sum up the "appeared" column separately for each different "feature".
+
+```
+
+
+## 1.3 Visualization
+
+We will try to replicate a visualization of painting elements from FiveThirtyEight.
+
+![A horizontal bar chart from FiveThirtyEight's article at https://fivethirtyeight.com/features/a-statistical-analysis-of-the-work-of-bob-ross/.](https://fivethirtyeight.com/wp-content/uploads/2014/04/hickey-ross-tags-1.png?resize=665,1024)
+
+* Our visualization will be slightly different than FiveThirtyEight's; theirs includes frames, and makes some modifications to the column names for clarity.
+
+Important features of the graph to recreate include:
+
+- Title and subtitle, axis labels
+- The ordering of the bars
+- The feature names are not in all caps
+- The percentages are included as text to the right of each bar
+- The purposeful lack of axes and grid markings
+- Only features which appear at least 2% of the time are shown
+
+* You are encouraged to do this problem in steps:
+
+```{r}
+# Graph base: features on the left, with horizontal bars for percentages
+
+```
+
+```{r}
+# Take out all the very rare features and reorder bars
+
+```
+
+```{r}
+# Add the percentage labels through geom_text()
+
+```
+
+From here, it's all purely visual modifications.
+
+
+# 2. Colors by Episode
+
+* Our second dataset, `bob_ross_paintings.csv`, is courtesy of TwoInchBrush.com courtesy of GitHub user `jwilber`, and can be found [here](https://github.com/jwilber/Bob_Ross_Paintings).
+    - TwoInchBrush.com is a website dedicated to *The Joy of Painting*, including a database of information on each one, and GitHub user `jwilber` scraped and collected the data into one file.
+
+Each of the 403 rows of `bob_ross_paintings.csv` represents one painting. Just like in the first dataset, this is equivalent to representing one episode, since there was exactly one painting each episode.
+
+```{r}
+painting_colors <- read_csv("../../data/bob_ross_paintings.csv")
+
+nrow(painting_colors)
+```
+
+```{r}
+painting_colors %>% 
+  head()
+```
+
+* When we first read in the data, there are 28 columns giving information about the episode and the painting, with particular emphasis on the colors, but only a few we'll be interested in:
+    - `painting_title`, the title of the painting
+    - `season` and `episode`, which together uniquely identify each row,
+    - `num_colors`, the number of how many different colors the host uses,
+    - and 18 columns at the end with names ranging from `Black_Gesso` to `Alizarin_Crimson` which take on values 0 if that color does not appear in that painting, and 1 if it does.
+    
+    
+## 2.1 Visualization
+
+* Create a plot visualizing the distribution of the number of colors used, `num_colors`.
+
+```{r}
+# Write code here to visualize the distribution of num_colors.
+
+```
+
+
+## 2.2 What's that Outlier?
+
+It looks like there's one painting that just has one color in it. Is it real data or a data entry error? If it is real, what was going on with that observation?
+
+```{r}
+# Investigate outlier here!
+painting_colors %>% 
+  filter(num_colors == 1) %>% 
+  relocate(img_src, youtube_src, season, episode, painting_title)
+```
+
+![The Joy of Painting, Season 16, Episode 6: "A Contemplative Lady".](https://www.twoinchbrush.com/images/painting89.webp)
+
+That doesn't look like something Bob would make! Let's spend a minute watching the [video](https://www.youtube.com/embed/gnp6WE7Ql-s) to see what's up.
+
+This is a real painting that appeared on the show, made by Bob's instructor, John Thamm!  We have information on guest hosts in the other dataset, `all_elements`, but not this one.
+
+
+# 3. Joining the Two Datasets
+
+* We are eventually interested in comparing the color features from the `painting_colors` dataframe to various features of the FiveThirtyEight `all_elements` dataframe.
+
+* We need to `join` the two datasets together.
+
+* However, the dataframes don't share a variable or variables that we can join by... yet.
+
+```{r}
+painting_elements %>% 
+  select(EPISODE, TITLE)
+
+painting_colors %>% 
+  select(season, episode, painting_title)
+```
+
+
+* In addition, we want to only use the paintings where Bob Ross was the host.
+
+* So, our strategy will be the following:
+
+  - Use string commands to create `season` and `episode` variables in the `painting_elements` data set
+  - Keep only the columns `painting_title`, `season`, `episode`, `num_colors`, and specific color columns (from `Black_Gesso` to `Alizarin_Crimson`) from the `painting_colors` data set.
+  - Use `left_join()` to add columns from the modified `painting_colors` to `painting_elements`.
+
+    
+```{r}
+# Split EPISODE into episode and season in painting_elements
+painting_elements <- painting_elements %>% 
+  mutate(season = as.numeric(str_sub(EPISODE, 2, 3)),
+         episode = as.numeric(str_sub(EPISODE, 5, 6)),
+         .after = EPISODE)
+
+painting_elements
+
+######################################
+#                                    #
+# ^ Above code: not covered in 240 ^ #
+#                                    #
+# v below code: yes covered in 240 v #
+#                                    #
+######################################
+
+# Select desired columns from painting_colors
+painting_colors_temp <- painting_colors %>% 
+  select(season, episode, painting_title, num_colors,
+         Black_Gesso:Alizarin_Crimson)
+
+# Join the data sets and put the title columns next to each other
+ross <- painting_elements %>% 
+  left_join(painting_colors_temp, by = join_by(season, episode)) %>% 
+  relocate(painting_title, .after = TITLE)
+
+## Eliminate redundant columns, rename EPISODE
+ross <- ross %>% 
+  select(-TITLE) %>% 
+  rename(ID = EPISODE)
+```
+
+
+## 3.1 Visualization
+
+* Re-create the plot visualizing the distribution of the number of colors used, `num_colors`.
+
+* This time, only include the paintings actually made by Bob Ross.
+
+```{r}
+# Write code here to visualize the distribution of num_colors
+# for Bob's paintings.
+
+```
+
+
+
+
+
