@@ -1,0 +1,263 @@
+---
+title: "Section 18: MSN Flights Case Study"
+author: "Miranda Rintoul"
+date: "2025-12-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      error = TRUE, fig.height = 4)
+library(tidyverse)
+
+theme_set(theme_minimal())
+```
+
+# Overview
+
+## Learning Outcomes
+
+* The purpose of this case study is to **review** the principles we have learned and to **practice** interactively on a real case study.  There may be a few new functions.
+
+* Another purpose of this case study is to **celebrate** how much you all have learned this semester! 
+    
+## Preliminaries
+
+* You will need the `tidyverse` package which you should have from previous lectures.
+
+* Files to download to `STAT240/lecture/18-msn-flights`:
+    - `18_msn_flights.Rmd`
+    - `18_msn_flights_HINTS.Rmd`
+    - `18_msn_flights_solutions.Rmd` (later, when posted)
+    
+* Files to download to `STAT240/data`
+    - `msn-flights-2024.csv`
+
+    
+# Background
+
+The dataset `msn-flights-2024.csv`, downloaded from the [Bureau of Transportation Statistics](https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=b0-gvzr) contains information on every flight in or out of Dane County Regional Airport (MSN) in 2024.
+
+---
+    
+* Airlines help transport millions of people to nearly any destination in the world.  However, air travel is not without its fair share of stress.
+
+* Flight delays and even cancellations feel all too common.  How often are flights delayed, and are some airlines "worse" than others?  What other factors are related to airline delays?
+
+
+---
+
+## Special Note: Multiple Comparisons
+
+We're going to be using the same dataset to perform multiple statistical comparisons. Why might this be "risky"?
+
+In order to play it safe, we'll use a small $\alpha$ of 0.01 for all of our tests.  This way, we can avoid making false positive errors.
+
+https://xkcd.com/882/
+
+---
+
+
+# 1. Proportion Inference
+
+```{r}
+msn_flights <- read_csv("../../data/msn-flights-2024.csv")
+head(msn_flights)
+```
+
+* Each row in `msn-flights-2024.csv` represents a single flight to or from MSN.
+
+* There are 15 columns, including the date, airline, origin/destination cities, scheduled and actual departure/arrival times, and departure/arrival delay.
+
+* Scheduled times are denoted by "crs" (computer reservation system)
+
+* Airlines are denoted by International Air Transport Association [code](https://www.aspm.faa.gov/aspmhelp/index/ASQP__Carrier_Codes_and_Names.html).
+
+* Pay attention to the format of the time columns!
+
+
+## 1.1 What percent of flights are delayed?
+
+* How frequently can we expect a flight to be delayed?  
+
+* The FAA defines "delayed" as departing at least 15 minutes later than its scheduled time.
+
+* The code below filters out cancelled flights and creates a summary table counting the number of delayed flights and the total number of flights.
+
+```{r}
+msn_flights %>%
+  filter(cancelled == 0) %>%
+  summarize(delayed = sum(dep_delay >= 15), total = n())
+```
+
+
+* Construct a 99% A-C interval for the proportion of delayed flights to or from MSN.  Interpret it in context.
+
+```{r}
+# Write your code here!
+
+```
+
+
+## 1.2 Who cancels the most flights?
+
+Are the different airlines equally reliable? Consider comparing two airlines that serve MSN.  Let $p_1$ be the proportion of *cancelled* flights for the first airline and $p_2$ be the proportion of cancelled flights for the second airline.  
+
+The R code below creates a table of cancelled and non-cancelled flights for all of the airlines that serve MSN.
+
+```{r}
+msn_flights %>%
+  group_by(op_unique_carrier) %>%
+  summarize(non_cancelled = sum(cancelled == 0),
+            cancelled = sum(cancelled == 1))
+```
+
+As expected, airlines with more flights in general also seem to have more cancelled flights.
+
+* Pick any two airlines. Perform a hypothesis test at the 1% level to determine whether the proportion of cancelled flights is the same across the two airlines.  State hypotheses, test statistic, p-value, and conclusion.
+
+* Also consider the *assumptions* for this test.  How can we check these assumptions based on the table above?
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 2. Means Inference
+
+So far, we have only looked at *whether* the flights are delayed, but not *how much* they are delayed. How bad are the delays, and can the airlines recover from them for the next flight?
+
+
+## 2.1 Average flight delay
+
+Let's perform a test to see if the average flight delay is greater than 15 minutes.  First, tidy and explore the data.
+
+* Filter out any cancelled flights or flights delayed longer than 1 day.
+
+* Build a histogram of the remaining flight delays.
+
+* Calculate summary statistics (mean, sd, and n).
+
+```{r}
+# Write your code here!
+
+```
+
+What does the histogram show about the sample of flight delays, and why is it still acceptable to use a T test?
+
+* Perform a T hypothesis test at the 1% level to determine whether the average flight delay is over 15 minutes.  State assumptions, hypotheses, test statistic, p-value, and conclusion.
+
+
+## 2.2 Departure vs arrival delay
+
+Airlines often try to account for potential delays when scheduling flights, so that the delays will have less of an effect on future flights.  In addition to departure delay, we can also measure the arrival delay.
+
+Let $\mu_{dep}$ be the average departure delay and $\mu_{arr}$ be the average arrival delay.  Do airlines and pilots do a good job of reducing the delay on arrival?  In other words, we want to test
+
+$$H_0: \mu_{dep} - \mu_{arr} = 0 \quad \text{versus} \quad H_A: \mu_{dep} - \mu_{arr} > 0$$
+
+* Continue working with the above dataset that has cancellations and extreme delays filtered out.
+
+* Additionally filter out any flights with `NA` for arrival delay (these are the flights that had to be diverted to a different destination).
+
+* We have seen two different approaches for testing two samples of data: a Welch T test and a paired T test.  Consider the assumptions for each and identify which method is appropriate in this context.
+
+* Perform the appropriate test at the 1% level.  Make sure to state your test statistic, p-value, and conclusions.
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 3. Linear Regression
+
+Arrival delays are substantially less than departure delays, but still positive.  Do flights that depart later in the day suffer from worse delays?
+
+Let's build an initial scatterplot of departure delay vs scheduled (crs) departure time.  What is happening in this plot?
+
+```{r}
+ggplot(msn_flights, aes(x = crs_dep_time, y = dep_delay)) +
+  geom_point()
+```
+
+Let's filter the data to only include flights that are delayed but delayed less than 1 day, and make a variable for scheduled departure time in terms of "minutes after 5am" (the earliest flight).
+
+```{r}
+delayed_flights <- msn_flights %>%
+  filter(cancelled == 0) %>%
+  filter(dep_delay >= 15 & dep_delay < 24*60) %>%
+  mutate(crs_mins_from_5am = 
+           ((trunc(crs_dep_time / 100) - 5) * 60) + # Hours from 5, times 60
+           crs_dep_time %% 100 # Remaining minutes
+         ) 
+
+ggplot(delayed_flights, aes(x = crs_mins_from_5am, y = dep_delay)) +
+  geom_point()
+```
+
+* Use `lm()` to build a linear regression model relating scheduled departure time and departure delay. Interpret the slope and intercept in context.
+
+```{r}
+# Write your code here!
+
+```
+
+* The slope is actually negative, which is the opposite of what we expected.  Why might this be the case?
+
+
+# 3.1 Slope confidence interval
+
+* Let's investigate the slope coefficient further. Build a 99% confidence interval for the slope of the linear regression model, and interpret in context.
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 3.2 Validate the linear model
+
+This linear model may not be well fit - the conclusion from the previous test relies on several key assumptions:
+
+- Linearity
+- Normality
+- Constant variance
+
+Perform a residual analysis on the linear model by making a plot of residuals versus x.  What patterns do you see?
+
+```{r}
+# Write your code here!
+
+```
+
+
+How could this model be improved?
+
+
+
+# 4. Bonus Challenges
+
+Here are some trickier prompts to consider to really test your conceptual understanding!
+
+* Suppose we are doing 5 statistical tests that each have significance level 0.05.  What is the probability that we never make a type I error?
+
+* Suppose we are doing 5 statistical tests that each have significance level 0.05.  What is the probability that we make a type I error *at least once*?
+
+* Statistical analysis require the observations (rows) to be independent of each other.  What are some reasons this might not be the case in this dataset, and how might that be fixed?
+
+* The highly right-skewed nature of the `dep_delay` variable ruined our linear model but is not a problem when testing the average departure delay.  Why is that the case?
+
+
+
+
+
+
+
+    
+    

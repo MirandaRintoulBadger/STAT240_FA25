@@ -1,0 +1,52 @@
+---
+title: "MSN Flights Case Study Hints"
+author: "Miranda Rintoul"
+date: "2025-12-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Proportion Inference
+
+## 1.1 What percent of flights are delayed?
+
+* The A-C adjustment requires us to artificially add successes and failures into the data and must be done first.
+* Rembmer to use the adjusted p-hat in the interval.
+* If we have a 99% interval, what is alpha?  What percentile should we use for a critical value?
+
+## 1.2 Who cancels the most flights?
+
+* The use of a normal curve for a proportion CI or hypothesis test is based on the Central Limit Theorem.
+* Remember that the test statistic (including the denominator standard error) is calculated based on the assumption that the null hypothesis is true.
+
+
+# 2. Means Inference
+
+## 2.1 Average flight delay
+
+* Try to use logical expressions to get the data we want with just a single use of `filter()`.
+* Pay attention to the direction of the hypotheses when calculating a p-value.
+
+## 2.2 Departure vs arrival delay
+
+* Think about whether there is a meaningful way to pair together the departure and arrival delays.  Can we calculate a "difference" before taking the mean?
+* This hypothesis test is also one-sided.
+
+
+# 3. Linear Regression
+
+# 3.1 Slope confidence interval
+
+* You can either calculate standard error "manually", or just read off the value from the `summary()` coefficient table.
+* The T degrees of freedom for linear regression are different from the df when doing a T test for the mean.
+
+# 3.2 Validate the linear model
+
+* To build your graph, you'll need to add the residuals as a column into the data.
+* Pay attention to the specific patterns in the residual plot.
+
+
+
