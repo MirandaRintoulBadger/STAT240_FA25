@@ -1,0 +1,230 @@
+---
+title: 'Section 17: The Bob Ross Case Study'
+author: "Solutions"
+date: "Spring 2025"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      error = TRUE, fig.height = 4, eval = F)
+library(tidyverse)
+
+theme_set(theme_minimal())
+
+```
+
+# 1. Elements by Episode
+
+```{r}
+all_elements <- read_csv("../../data/elements-by-episode.csv")
+head(all_elements)
+```
+
+
+## 1.1 Are Any Titles Repeated?
+
+```{r}
+# Write code to determine if which values of TITLE, if any, appear multiple times.
+all_elements %>% 
+  group_by(TITLE) %>% 
+  summarize(num_paintings = n()) %>%
+  filter(num_paintings > 1)
+```
+
+
+## 1.2 Which Features Appear The Most?
+
+```{r}
+# Write code here to remove the frame and host columns and filter to Bob Ross' episodes. 
+# Save this dataframe, which has just EPISODE, TITLE, and the painting-based features, to painting_elements.
+painting_elements <- all_elements %>% 
+  filter(GUEST == 0) %>% 
+  select(-c(DIANE_ANDRE, STEVE_ROSS, GUEST, contains("FRAME")))
+
+# painting_elements should have 381 rowsand 50 columns. 
+dim(painting_elements)
+```
+
+```{r}
+# We want to have each row be a different painting-feature combination.
+# There should be a column for the feature and a column for whether or not it appears.
+
+painting_elements %>% 
+  pivot_longer(-c(EPISODE, TITLE), 
+               names_to = "feature", values_to = "appeared")
+
+# We should end up with 381 Bob Ross episodes x 48 features = 18,288 rows.
+```
+
+```{r}
+# Now, we can sum up the "appeared" column separately for each different "feature".
+painting_element_counts <- painting_elements %>% 
+  pivot_longer(-c(EPISODE, TITLE),
+               names_to = "feature", values_to = "appeared") %>% 
+  group_by(feature) %>% 
+  summarize(percentage = mean(appeared)) %>% 
+  arrange(desc(percentage))
+
+painting_element_counts
+```
+
+
+## 1.3 Visualization
+
+```{r, eval = F}
+# Graph base: features on the left, with horizontal bars for percentages
+ggplot(painting_element_counts, aes(y = feature, x = percentage)) +
+  geom_col()
+```
+
+```{r, eval = F}
+# Take out all the very rare features and reorder bars
+painting_element_counts %>% 
+  filter(percentage > 0.02) %>% 
+ggplot(aes(y = reorder(feature, percentage), x = percentage)) +
+  geom_col()
+```
+
+```{r, eval = F}
+# Add the percentage labels through geom_text()
+painting_element_counts %>% 
+  filter(percentage > 0.02) %>% 
+ggplot(aes(y = reorder(feature, percentage), x = percentage)) +
+  geom_col() +
+  # label should be set within aes() because it is a variable aesthetic
+  geom_text(aes(label = round(percentage*100)), hjust = "left")
+```
+
+```{r, eval = F}
+# From here it's all purely visual modifications
+painting_element_counts %>% 
+  filter(percentage > 0.02) %>% 
+  # Change the feature names from "THIS_FORMAT" to "This format" 
+  mutate(feature = str_to_sentence(feature),
+         feature = str_replace(feature, "_", " ")) %>% 
+  
+ggplot(aes(y = reorder(feature, percentage), x = percentage)) +
+  # Fill the bars dodgerblue
+  geom_col(fill = "dodgerblue") +
+  geom_text(aes(label = round(percentage*100)), hjust = "left", size = 3) +
+  # Reduce that space between the feature labels and the bars
+  scale_x_continuous(
+    expand = expansion(mult = c(0, 0.1))
+  ) +
+  
+  # Get rid of the grid and x axis labels, make the background all light gray
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_blank(),
+    plot.background = element_rect(fill = "gray96", color = "gray96"),
+    plot.title.position = "plot",
+    plot.title = element_text(face = "bold")
+  ) +
+  
+  # Add plot labels and take away axis titles
+  labs(
+    title = "The Paintings of Bob Ross",
+    subtitle = "Percentage containing each element",
+    x = "",
+    y = ""
+  )
+
+
+# new command: ggsave! Saves the last ggplot you created.
+ggsave("MyBobRossPlot.png")
+```
+
+
+# 2. Colors by Episode
+
+```{r}
+painting_colors <- read_csv("../../data/bob_ross_paintings.csv")
+
+nrow(painting_colors)
+```
+
+```{r}
+painting_colors %>% 
+  head()
+```
+
+ 
+## 2.1 Visualization
+
+```{r}
+# Write code here to visualize the distribution of num_colors.
+ggplot(painting_colors) +
+  geom_bar(aes(x = num_colors),
+                 color = "black", fill = "dodgerblue")  +
+  
+  # Improved axis labeling
+  scale_x_continuous(
+    breaks = 0:15
+  ) 
+
+# A histogram or density plot would be a worse choice.
+```
+
+
+## 2.2 What's that Outlier?
+
+```{r}
+# Investigate outlier here!
+painting_colors %>% 
+  filter(num_colors == 1) %>% 
+  relocate(img_src, youtube_src, season, episode, painting_title)
+```
+
+
+# 3. Joining the Two Datasets
+
+```{r}
+# Split EPISODE into episode and season in painting_elements
+painting_elements <- painting_elements %>% 
+  mutate(season = as.numeric(str_sub(EPISODE, 2, 3)),
+         episode = as.numeric(str_sub(EPISODE, 5, 6)),
+         .after = EPISODE)
+
+painting_elements
+
+# Select desired columns from painting_colors
+painting_colors_temp <- painting_colors %>% 
+  select(season, episode, painting_title, num_colors,
+         Black_Gesso:Alizarin_Crimson)
+
+# Join the data sets and put the title columns next to each other
+ross <- painting_elements %>% 
+  left_join(painting_colors_temp, by = join_by(season, episode)) %>% 
+  relocate(painting_title, .after = TITLE)
+
+## Eliminate redundant columns, rename EPISODE
+ross <- ross %>% 
+  select(-TITLE) %>% 
+  rename(ID = EPISODE)
+```
+
+# 3.1 Visualization
+
+```{r}
+# Write code here to visualize the distribution of num_colors
+# for Bob's paintings.
+
+ggplot(ross) +
+  geom_bar(aes(x = num_colors),
+                 color = "black", fill = "dodgerblue")  +
+  
+  # Improved axis labeling
+  scale_x_continuous(
+    breaks = 0:15
+  ) 
+```
+
+
+
+
+
+
+
+
