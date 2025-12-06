@@ -1,0 +1,289 @@
+---
+title: "Discussion 11"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds11`.
+- The file `example_lm_data.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to think about different ways of studying two separate populations.  You'll also get to see a few highly questionable linear models.
+
+
+# Problem 1
+#### (approx. 10 minutes)
+
+Consider exploring the formula for Welch degrees of freedom for a two-sample T test.
+
+(a) Create a dataframe with the following columns: 
+
+- `s1`, with values 1 through 40, repeated 40 times.
+- `s2`, with values 1 through 40, repeated 40 times, so that we have 1600 unique combinations of `s1` and `s2`.
+- `w_df`, the Welch degrees of freedom evaluated for each combination of `s1` and `s2`.  Use n1 = n2 = 20 and `round()` to 3 decimal points to avoid precision errors with R.
+
+    Think about how to use the `rep()` function cleverly to get every different combination of `s1` and `s2` without any repeat rows.
+
+```{r, class.source="soln", class.output="soln"}
+welch_df_data <- tibble(
+  s1 = rep(1:40, 40),
+  s2 = rep(1:40, each = 40),
+  
+  w_numerator = (s1^2/20 + s2^2/20)^2,
+  w_denominator = (s1^4/(20^2*(20-1)) + s2^4/(20^2*(20-1))),
+  
+  w_df = round(w_numerator / w_denominator, 3)
+)
+```
+
+(b) What are the minimum and maximum values of `w_df` in your the data?  What are the corresponding values of `s1` and `s2`?
+
+```{r, class.source="soln", class.output="soln"}
+welch_df_data %>%
+  slice_min(w_df)
+
+welch_df_data %>%
+  slice_max(w_df)
+```
+
+<span style="color:#5858d0"> The smallest value of df, about 19, occurs at the biggest difference between `s1` and `s2`.  The maximum value of the df, which is n1 + n2 - 2 = 38, occurs in every instance where s1 and s2 are equal. </span>
+
+(c) Use ggplot with `geom_tile()` to create a heat-map plot of your dataframe with `s1` and `s2` on the x and y axes and the tiles colored by `w_df` in a color scheme of your choice. 
+
+```{r, class.source="soln", class.output="soln"}
+ggplot(welch_df_data, aes(x = s1, y = s2, fill = w_df)) +
+  geom_tile() +
+  scale_fill_viridis_c()
+```
+
+(d) Based on the results of (b) and (c), interpret the relationship between the size of `s1` and `s2` and the Welch degrees of freedom.
+
+<span style="color:#5858d0"> There is a bigger "penalty" to the Welch df when the two sample standard deviations are more different.  We see that the Welch df are always the same when the two sample SDs are equal, regardless of the size of the SD. (In a T test that assumes equal population variances, the degrees of freedom are simply n1 + n2 - 2). </span>
+
+<span style="color:#5858d0"> In the plot, we see that the bigger values for df "fan out" as we move to the top right.  So, the amount that the degrees of freedom are penalized depends on the magnitude of s1 and s2 - we seem to care more about the relative difference between the values rather than just the absolute difference. </span>
+
+
+# Problem 2
+#### (approx. 10 minutes)
+
+We can use a two-sample Welch T confidence interval or T hypothesis test to compare two population means.  Consider this method instead: separately calculate a one-sample T confidence interval for both groups, and see if the intervals intersect. If the intervals do not intersect, we have evidence that the group means are different.
+
+Below are two samples of data of size 25 taken from two independent populations.
+
+```{r}
+group1 <- c(34.91, 46.10, 22.96, 25.17, 13.65, 11.25, 6.96, 18.53, 3.93,
+            32.36, 29.19, 23.03, 37.30, 22.19, 10.05, 23.93, 17.58, 22.07,
+            19.97, 68.45, 15.45, 21.17, 19.10, 23.26, 34.56)
+
+group2 <- c(51.95, 47.23, 28.88, 28.89, 45.21, 33.03, 16.20, 35.50, 29.82,
+            16.23, 35.23, 35.60, 20.06, 38.33, 26.14, 47.16, 38.66, 23.57,
+            43.32, 24.65, 28.66, 29.75, 39.98, 20.81, 26.70)
+```
+
+(a) Perform a Welch T test of a difference in means with $\alpha = 0.05$.  Also compute 95% one-sample T confidence intervals for each separate group. You can use `t.test()` for this.  
+
+```{r, class.source="soln", class.output="soln"}
+t.test(group1, group2, var.equal = F)
+
+t.test(group1)$conf.int
+t.test(group2)$conf.int
+```
+
+(b) Compare the results in part (a).  Do the methods support concluding a difference in means or not?  Why might the methods be different? Which test appears to be more conservative, i.e. less likely to detect a difference?
+
+<span style="color:#5858d0"> At the 5% level, we reject the null hypothesis of the two-sample T test and conclude that there is a significant difference in means.  However, the individual 95% CIs for the two group means are overlapping, which suggests that the true means are similar.  This "two separate one-sample CIs" method is more conservative and less powerful than studying the difference in means.  Intuitively, we are making a relatively wide guess for both $\mu_1$ and $\mu_2$ at 95% confidence, so it is likely that the upper "guesses" for $\mu_1$ will overlap with the lower "guesses" for $\mu_2$. </span>
+
+(c) The simulation below takes a sample from population 1 with $\mu_1 = 24, \sigma_1 = 10$ and from population 2 with $\mu_2 = 32, \sigma_2 = 10$.  It builds a $100(1 - \alpha)$ CI for each group (95% CIs by default) and then repeats this entire process 10000 times.
+
+    The chunk will output a dataframe, `sim_CIs`, containing the upper and lower bounds for the CIs for groups 1 and 2 for each run of the experiment.  Use `dplyr` to calculate the percentage of time (out of the 10000 runs) that the CIs for groups 1 and 2 do not overlap.
+    
+```{r}
+# Set confidence level
+alpha <- 0.05
+
+# Repeat 10000 times
+iter <- 10000
+
+# Vectors to store CI bounds
+group1_CI_lower <- numeric(iter)
+group1_CI_upper <- numeric(iter)
+group2_CI_lower <- numeric(iter)
+group2_CI_upper <- numeric(iter)
+
+set.seed(32948)
+
+for(i in 1:iter){
+  samp1 <- rnorm(25, 24, 10)
+  samp2 <- rnorm(25, 32, 10)
+  
+  group1_CI_lower[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[1]
+  group1_CI_upper[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[2]
+  group2_CI_lower[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[1]
+  group2_CI_upper[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[2]
+}
+
+# Compile results in dataframe
+
+sim_CIs <- tibble(group1_CI_lower,
+                  group1_CI_upper,
+                  group2_CI_lower,
+                  group2_CI_upper)
+```
+
+```{r, class.source="soln", class.output="soln"}
+sim_CIs %>%
+  summarize(pct_overlap = sum(group1_CI_upper > group2_CI_lower) / n(),
+            pct_nooverlap = sum(group1_CI_upper < group2_CI_lower) / n())
+```
+
+<span style="color:#5858d0"> Even though we know that the true $\mu_1$ and $\mu_2$ are different, only about 47% of the intervals in the simulation do not overlap (and therefore suggest a difference in means) </span>
+
+(d) Play with the value of `alpha` set at the beginning of the simulation.  About how large does `alpha` need to be before the percentage of non-overlapping intervals is about 0.95?
+
+```{r, class.source="soln", class.output="soln"}
+# Set confidence level
+alpha <- 0.4
+
+# Repeat 10000 times
+iter <- 10000
+
+# Vectors to store CI bounds
+group1_CI_lower <- numeric(iter)
+group1_CI_upper <- numeric(iter)
+group2_CI_lower <- numeric(iter)
+group2_CI_upper <- numeric(iter)
+
+set.seed(32948)
+
+for(i in 1:iter){
+  samp1 <- rnorm(25, 24, 10)
+  samp2 <- rnorm(25, 32, 10)
+  
+  group1_CI_lower[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[1]
+  group1_CI_upper[i] <- t.test(samp1, conf.level = 1 - alpha)$conf.int[2]
+  group2_CI_lower[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[1]
+  group2_CI_upper[i] <- t.test(samp2, conf.level = 1 - alpha)$conf.int[2]
+}
+
+# Compile results in dataframe
+
+sim_CIs <- tibble(group1_CI_lower,
+                  group1_CI_upper,
+                  group2_CI_lower,
+                  group2_CI_upper)
+```
+
+```{r, class.source="soln", class.output="soln"}
+sim_CIs %>%
+  summarize(pct_overlap = sum(group1_CI_upper > group2_CI_lower) / n(),
+            pct_nooverlap = sum(group1_CI_upper < group2_CI_lower) / n())
+```
+
+<span style="color:#5858d0"> Through trial and error, setting $\alpha = 0.4$ (resulting in very narrow 60% CIs) means that the intervals do not overlap in 95% of experimental runs. </span>
+
+
+# Problem 3
+#### (approx. 10 minutes)
+
+Identify whether each of the datasets described below are paired or independent samples.  Briefly explain your choices.
+
+(a) Measurements of annual income taken both before and after a two-year training course for a random sample of 100 people who took the course.
+
+<span style="color:#5858d0"> Paired - the samples are not independent because we are measuring the same person's income before and after the course.  The analysis should be done at the level of each person. </span>
+
+(b) Measurements of annual income for a random sample of 100 people who took the two-year training course and another random sample of 100 people who did not take the course.
+
+<span style="color:#5858d0"> Independent - in this case we are studying completely different people in the group who took the course and the group who did not, so there is no meaningful way to pair the data. </span>
+
+(c) Measurements of annual income for both individuals in pairs formed by assigning 100 people to pairs at random.
+
+<span style="color:#5858d0"> Independent - just like part (b), there is no special meaning to this pairing that we expect to affect our analysis, so we should consider the two groups as independent. </span>
+
+(d) Measurements of annual income 100 randomly selected pairs of twins that have one female and one male twin.
+
+<span style="color:#5858d0"> Paired - we cannot assume that siblings are independent of each other since they probably share a lot of background and upbringing that might affect their financial situation. We should do our analysis on the level of each pair of twins. </span>
+
+(e) Measurements of annual income recorded for both partners of 100 randomly selected couples.
+
+<span style="color:#5858d0"> Paired - the groups are not independent because the individuals have chosen to enter a relationship with an individual from the other group. We should do the analysis on the level of each couple since the partners might have a similar job or share financial habits. </span>
+
+
+# Problem 4
+#### (approx. 15 minutes)
+
+The dataset `example_lm_data.csv` contains four sets of (x, y) pairs.  
+
+```{r}
+lm_data <- read_csv("../../data/example_lm_data.csv")
+```
+
+
+(a) Use R to fit a linear model on each dataset (four linear models total).  Also calculate the correlation between each set of (x, y) pairs.  What do you notice about the four sets of data?
+
+```{r, class.source="soln", class.output="soln"}
+lm_1 <- lm(y1 ~ x1, data = lm_data)
+lm_2 <- lm(y2 ~ x2, data = lm_data)
+lm_3 <- lm(y3 ~ x3, data = lm_data)
+lm_4 <- lm(y4 ~ x4, data = lm_data)
+
+lm_1; lm_2; lm_3; lm_4
+
+cor(lm_data$x1, lm_data$y1); cor(lm_data$x2, lm_data$y2)
+cor(lm_data$x3, lm_data$y3); cor(lm_data$x4, lm_data$y4)
+```
+
+<span style="color:#5858d0"> All of the linear models have very similar coefficients, and the correlations between x and y in each respective dataset are also extremely close to each other.  On the surface, it seems like the four datasets are extremely close to each other and demonstrate the same relationship. </span>
+
+(b) Now, use `ggplot()` with `geom_point()` and `geom_smooth()` to make scatterplots of each dataset with its respective linear model.  What can be said about the data now that we can see it?  Which set of data is most appropriately described by the linear model?
+
+```{r, class.source="soln", class.output="soln"}
+ggplot(data = lm_data, aes(x = x1, y = y1)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 1")
+
+ggplot(data = lm_data, aes(x = x2, y = y2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 2")
+
+ggplot(data = lm_data, aes(x = x3, y = y3)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 3")
+
+ggplot(data = lm_data, aes(x = x4, y = y4)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 4")
+```
+
+<span style="color:#5858d0"> Although the linear models are all very similar, the four datasets look completely different in terms of shape!  This shows how a lot of the the specific information about our data is lost when we describe it using only a linear model.  It also demonstrates the importance of graphing the data - a linear model is not appropriate for any of the four sets of data. </span>
+
+<span style="color:#5858d0"> This activity is based on the Datasaurus Dozen, a set of 13 datasets with nearly identical descriptive statistics but wildly different scatterplots.  The Datasaurus Dozen was inspired by the classic Anscombe's Quartet which demonstrates a similar idea about linear modeling. </span>
+
+After completing the activity, you can read more about this example [here](https://medium.com/@marc.bolle/datasaurus-dozen-visualization-using-python-d328dad64d20).
+
+
+
+
