@@ -1,0 +1,93 @@
+---
+title: "Discussion 12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds12`.
+- The file `lake-monona-winters-2025.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to build a stronger understanding of the meaning of correlation in a linear model and how to use the model for different types of predictions.
+
+
+# Problem 1
+#### (approx. 20 minutes)
+
+The code below (hidden in the .html) creates a ficitonal dataset of 35 students and their midterm and final exam scores (out of 100) and creates a basic scatterplot of the data.
+
+```{r, include=FALSE}
+exam_scores <- tibble(
+  midterm = c(85.4, 91.0, 83.9, 83.9, 84.0, 85.8, 76.2, 83.9, 73.5,
+              80.0, 83.9, 85.0, 65.0, 79.4, 91.5, 90.4, 79.4, 80.7,
+              76.0, 72.3, 87.3, 82.1, 88.2, 69.2, 72.9, 68.9, 86.2,
+              90.8, 83.7, 72.4, 79.7, 82.7, 80.6, 94.5, 97.5),
+  final = c(82.9, 95.8, 79.6, 89.2, 81.2, 86.9, 69.1, 86.1, 76.2,
+            83.2, 81.4, 83.3, 65.3, 69.4, 83.8, 89.2, 83.6, 80.8,
+            77.3, 71.9, 85.7, 89.4, 85.3, 74.0, 73.8, 73.9, 88.5,
+            93.5, 85.6, 76.8, 69.8, 73.7, 80.4, 98.4, 88.2)
+)
+
+ggplot(exam_scores, aes(x = midterm, y = final)) + 
+  geom_point()
+```
+
+
+(a) Using R, calculate the mean and standard deviation of both the midterm and final exam scores, and calculate the correlation between the two scores.
+
+(b) Is it true that students had above-average midterm scores also had above-average final exam scores?  Is it true that students who had above-average midterm scores showed an improved score on the final?
+
+(c) Using the basic "by-hand" formulas (i.e. not using R `lm()`), calculate a linear model to predict final exam score (y) in terms of midterm score (x).
+
+(d) Suppose a student scored *one standard deviation above the class average* for their midterm score.  What does the model predict their final exam score to be?  What is this student's final exam score in terms of the average and standard deviation final exam score for the class?
+
+(e) For linear models in general, if a value $x_i$ is $z_i$ standard deviations above the average of X, the predicted value $\hat{y}_i$ will be how many standard deviations above the average of Y?
+
+(f) In a famous anecdote, flight instructors claim that punishment and shame is the most effective teaching tool.  Student pilots that were praised for good performance tended to do worse on their next flight, and student pilots that were berated for poor performance tended to do better on their next flight.  How can we explain this phenomenon with regression?
+
+
+# Problem 2
+#### (approx. 15 minutes)
+
+Continue working with the Lake Monona freeze data from lecture where we fit a linear model on year and freeze duration.  The default behavior of `geom_smooth()` on a scatterplot is to create a band showing 95% confidence intervals around the predicted line:
+
+```{r}
+theme_set(theme_minimal()) # Set theme to minimal to have white background
+
+monona <- read_csv("../../data/lake-monona-winters-2025.csv")
+
+ggplot(monona, aes(x = year1, y = duration)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+(a) Re-create the plot above without using `geom_smooth()`.  It may be useful to search the help file for `geom_ribbon()`.
+
+(b) Add another band to your plot in a different color representing prediction intervals around the line.
+
+(c) Explain *mathematically* why the prediction intervals are so much wider than the corresponding confidence intervals.  You should reference specific formulas.
+
+(d) Explain *intuitively* why the prediction intervals are so much wider than the corresponding confidence intervals.  You should consider the different goals of the two ways of doing prediction.
+
+
+---
+
+# Final Exam: Tuesday, December 16, 7:45 AM
+
+Use the remaining time in discussion to work on writing your cheat sheet for the final exam.  You can bring *two* standard sheets of paper with anything you want written on both sides, and you are welcome to work with others to decide what you want to put on your sheet.
+
+The final exam is cumulative, but with a focus on material from the statistical analysis unit of the course: homeworks 9-11 and discussions 10-12.
+
+
+
+
+
