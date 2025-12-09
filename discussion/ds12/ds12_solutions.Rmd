@@ -1,0 +1,206 @@
+---
+title: "Discussion 12"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds12`.
+- The file `lake-monona-winters-2025.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to build a stronger understanding of the meaning of correlation in a linear model and how to use the model for different types of predictions.
+
+
+# Problem 1
+#### (approx. 20 minutes)
+
+The code below (hidden in the .html) creates a ficitonal dataset of 35 students and their midterm and final exam scores (out of 100) and creates a basic scatterplot of the data.
+
+```{r, include=FALSE}
+exam_scores <- tibble(
+  midterm = c(85.4, 91.0, 83.9, 83.9, 84.0, 85.8, 76.2, 83.9, 73.5,
+              80.0, 83.9, 85.0, 65.0, 79.4, 91.5, 90.4, 79.4, 80.7,
+              76.0, 72.3, 87.3, 82.1, 88.2, 69.2, 72.9, 68.9, 86.2,
+              90.8, 83.7, 72.4, 79.7, 82.7, 80.6, 94.5, 97.5),
+  final = c(82.9, 95.8, 79.6, 89.2, 81.2, 86.9, 69.1, 86.1, 76.2,
+            83.2, 81.4, 83.3, 65.3, 69.4, 83.8, 89.2, 83.6, 80.8,
+            77.3, 71.9, 85.7, 89.4, 85.3, 74.0, 73.8, 73.9, 88.5,
+            93.5, 85.6, 76.8, 69.8, 73.7, 80.4, 98.4, 88.2)
+)
+
+ggplot(exam_scores, aes(x = midterm, y = final)) + 
+  geom_point()
+```
+
+
+(a) Using R, calculate the mean and standard deviation of both the midterm and final exam scores, and calculate the correlation between the two scores.
+
+```{r, class.source="soln", class.output="soln"}
+mean(exam_scores$midterm); sd(exam_scores$midterm)
+mean(exam_scores$final); sd(exam_scores$final)
+
+cor(exam_scores$midterm, exam_scores$final)
+```
+
+(b) Is it true that students had above-average midterm scores also had above-average final exam scores?  Is it true that students who had above-average midterm scores showed an improved score on the final?
+
+<span style="color:#5858d0"> Let's make a new column to indicate whether the student improved their score from the midterm to the final, and then filter to only show students with an above-average midterm score.
+
+```{r, class.source="soln", class.output="soln"}
+exam_scores_small <- exam_scores %>%
+  mutate(improved = final > midterm) %>%
+  filter(midterm > 81.94)
+```
+
+<span style="color:#5858d0"> Now, let's make a summary table to look at the average final exam scores for these students and see what proportion of them improved their score on the final. </span>
+
+```{r, class.source="soln", class.output="soln"}
+exam_scores_small %>%
+  summarize(avg_final = mean(final),
+            did_better = mean(improved))
+```
+
+<span style="color:#5858d0"> The average final exam score for this group of students is 86.385, which is better than the overall average final exam score of 81.52.  Students who did better on the midterm also tended to do better on the final, which makes sense given the strong positive correlation between the two measurements. </span>
+
+<span style="color:#5858d0"> We also see that less than half of these students managed to improve their score on the final, even though the overall average midterm and final scores are very similar (so we can assume the tests were equally difficult). </span>
+
+(c) Using the basic "by-hand" formulas (i.e. not using R `lm()`), calculate a linear model to predict final exam score (y) in terms of midterm score (x).
+
+<span style="color:#5858d0"> The slope of our model is given by 
+$$\hat{\beta}_1 = r\frac{s_y}{s_x} = 0.811\frac{7.91}{7.51} = 0.854$$
+and the intercept is given by 
+$$\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x} = 81.52 - 0.854(81.94) = 11.54$$
+The predicted final exam score is 
+$$\hat{y} = 11.54 + 0.854x$$
+</span>
+
+(d) Suppose a student scored *one standard deviation above the class average* for their midterm score.  What does the model predict their final exam score to be?  What is this student's final exam score in terms of the average and standard deviation final exam score for the class?
+
+<span style="color:#5858d0"> The average midterm score was 81.94 with sd 7.51, so this student must have scored $81.94 + 7.51 = 89.45$.  The model predicts their final exam score to be
+$$11.54 + 0.854(89.45) = 87.93$$
+</span>
+
+<span style="color:#5858d0"> The average final score is 81.52, so this student scored $87.93 - 81.52 = 6.41$ points above average.  This is $\frac{6.41}{7.91} = 0.81$ standard deviations above the average final exam score. </span>
+
+(e) For linear models in general, if a value $x_i$ is $z_i$ standard deviations above the average of X, the predicted value $\hat{y}_i$ will be how many standard deviations above the average of Y?
+
+<span style="color:#5858d0"> The predicted value $\hat{y}_i$ will be $r(z_i)$ y-standard deviations above $\bar{y}$.  We can understand the correlation as the linear relationship between $x$ and $y$ in standard units. Since it is less than 1, a student's final exam score is determined partially but not entirely from their midterm score. </span>
+
+(f) In a famous anecdote, flight instructors claim that punishment and shame is the most effective teaching tool.  Student pilots that were praised for good performance tended to do worse on their next flight, and student pilots that were berated for poor performance tended to do better on their next flight.  How can we explain this phenomenon with regression?
+
+<span style="color:#5858d0"> If we imagine calculating correlation or fitting a linear model between "first flight performance" and "second flight performance" then we would expect to see a strong but not perfect correlation.  The pilots who did extremely well on their first flight will probably do worse on their second flight, just due to random chance.  Similarly, the pilots who did poorly on their first flight will most likely improve.  This is the same reason for the "sophomore slump" in sports. </span>
+
+
+# Problem 2
+#### (approx. 15 minutes)
+
+Continue working with the Lake Monona freeze data from lecture where we fit a linear model on year and freeze duration.  The default behavior of `geom_smooth()` on a scatterplot is to create a band showing 95% confidence intervals around the predicted line:
+
+```{r}
+theme_set(theme_minimal()) # Set theme to minimal to have white background
+
+monona <- read_csv("../../data/lake-monona-winters-2025.csv")
+
+ggplot(monona, aes(x = year1, y = duration)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+(a) Re-create the plot above without using `geom_smooth()`.  It may be useful to search the help file for `geom_ribbon()`.
+
+```{r, echo=F}
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+<span style="color:#5858d0"> We'll use the `predict()` function to calculate several upper and lower bounds of confidence intervals for different values of x. </span>
+
+```{r, class.source="soln", class.output="soln"}
+lake_mod <- lm(duration ~ year1, data = monona)
+
+# Find range of x values to build different CIs
+first <- min(monona$year1)
+last <- max(monona$year1)
+
+CIs <- predict(lake_mod, newdata = tibble(year1 = first:last),
+               interval = "confidence")
+
+# Add interval bounds to our data
+monona <- monona %>%
+  mutate(reg_line = CIs[,1],
+         ci_lower = CIs[,2],
+         ci_upper = CIs[,3])
+```
+
+```{r, class.source="soln", class.output="soln"}
+# Create graph with band with geom_ribbon
+monona %>%
+  ggplot(aes(x = year1, y = duration)) +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper),
+              fill = "gray") +
+    geom_point() +
+  geom_line(aes(y = reg_line), col = "blue")
+```
+
+(b) Add another band to your plot in a different color representing prediction intervals around the line.
+
+<span style="color:#5858d0"> We need to do the same thing as part (a), but build prediction intervals instead of confidence intervals. </span>
+
+```{r, class.source="soln", class.output="soln"}
+PIs <- predict(lake_mod, newdata = tibble(year1 = first:last),
+               interval = "prediction")
+
+# Add interval bounds to our data
+monona <- monona %>%
+  mutate(pi_lower = PIs[,2],
+         pi_upper = PIs[,3])
+```
+
+```{r, class.source="soln", class.output="soln"}
+# Create graph with band with geom_ribbon for both PIs and CIs
+monona %>%
+  ggplot(aes(x = year1, y = duration)) +
+  geom_ribbon(aes(ymin = pi_lower, ymax = pi_upper),
+              fill = "darkslategray1") +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper),
+              fill = "deepskyblue2") +
+    geom_point() +
+  geom_line(aes(y = reg_line), col = "blue")
+```
+
+(c) Explain *mathematically* why the prediction intervals are so much wider than the corresponding confidence intervals.  You should reference specific formulas.
+
+<span style="color:#5858d0"> The formula for the prediction interval standard error has an extra +1 term inside of the square root, which is being multiplied by $S$, which makes the standard error larger.
+$$\text{CI SE}: S\sqrt{\frac{1}{n} + \frac{(x^* - \bar{x})^2}{(n-1)s_X^2}}, \quad \text{PI SE}: S\sqrt{1 + \frac{1}{n} + \frac{(x^* - \bar{x})^2}{(n-1)s_X^2}}$$
+</span>
+
+(d) Explain *intuitively* why the prediction intervals are so much wider than the corresponding confidence intervals.  You should consider the different goals of the two ways of doing prediction.
+
+<span style="color:#5858d0"> Although the two types of intervals are both based on the linear model, they are trying to predict different things. A confidence interval is about the position of the line itself, or the *average* value of y for a given x. A prediction interval is trying to predict a *single* y value for an individual x.  The prediction intervals must be wider to account for all of the added uncertainty from a brand new value in the population (that's where the +1 in the formula comes from). </span>
+
+
+---
+
+# Final Exam: Tuesday, December 16, 7:45 AM
+
+Use the remaining time in discussion to work on writing your cheat sheet for the final exam.  You can bring *two* standard sheets of paper with anything you want written on both sides, and you are welcome to work with others to decide what you want to put on your sheet.
+
+The final exam is cumulative, but with a focus on material from the statistical analysis unit of the course: homeworks 9-11 and discussions 10-12.
+
+
+
+
+
