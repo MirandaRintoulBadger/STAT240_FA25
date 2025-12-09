@@ -1,0 +1,280 @@
+---
+title: "Homework 11"
+output: html_document
+---
+
+```{css, echo = F}
+.soln {
+background-color: #E6E6FA;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+library(tidyverse)
+```
+
+```{r, echo=F}
+old <- theme_get()
+
+theme_set(theme(panel.background = element_rect(fill = "#ededfb")))
+```
+
+
+# Preliminaries
+
+- This file should be in `STAT240/homework/hw11` on your local computer.
+- Download `happiness_2019.csv` and `dc_weather.csv` to `STAT240/data`.
+
+
+# Problem 1
+
+A one-sided hypothesis test of 
+
+$$H_A: \beta_1 > 0$$
+
+is performed on a linear model.  The p-value of this test is 0.035.  What would be the p-value if the same data was used to test the following alternatives?
+
+(a) $$H_A: \beta_1 < 0$$
+
+<span style="color:#5858d0"> The p-value would be 1 - 0.035 = 0.965. </span>
+
+(b) $$H_A: \beta_1 \neq 0$$
+
+<span style="color:#5858d0"> The p-value would be 2*0.035 = 0.07 </span>
+
+
+# Problem 2
+
+Continue working with the happiness index vs GDP of countries model from Homework 10.
+
+```{r}
+happiness <- read_csv("../../data/happiness_2019.csv")
+
+# Remove spaces from column names
+names(happiness) <- make.names(names(happiness))
+
+happiness_mod <- lm(Score ~ GDP.per.capita, data = happiness)
+```
+
+Build and interpret a 98% CI for the true slope of the linear relationship between happiness index and GDP.  Does the interval cover 0?
+
+```{r, class.source="soln", class.output="soln"}
+summary(happiness_mod)
+
+n <- nrow(happiness)
+
+pt_est <- summary(happiness_mod)$coefficients[2, 1]
+se <- summary(happiness_mod)$coefficients[2, 2]
+```
+
+<span style="color:#5858d0"> The point estimate for the slope is 2.2181, and the standard error is 0.1369.  The critical value for 98% confidence is given by the 99th (or 1st) percentile of the T with n - 2 degrees of freedom. </span> 
+
+```{r, class.source="soln", class.output="soln"}
+cv <- qt(0.99, df = n-2)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+<span style="color:#5858d0"> We are 98% confident that the true linear relationship between happiness index and GDP per capita is within (1.9, 2.54). This interval is entirely positive and does not cover 0. </span>
+
+
+# Problem 3
+
+(a) Perform a hypothesis test of hypotheses $$H_0: \beta_1 = 0 \quad \text{versus}\quad H_A: \beta_1 \neq 0$$ for the slope of the happiness model.  What is the test statistic, p-value, and conclusion at the 2% level?
+
+```{r, class.source="soln", class.output="soln"}
+n <- nrow(happiness)
+pt_est <- summary(happiness_mod)$coefficients[2, 1]
+se <- summary(happiness_mod)$coefficients[2, 2]
+
+test_stat <- (pt_est - 0) / se
+```
+
+
+<span style="color:#5858d0"> The test statistic is 
+$$\frac{\hat{\beta}_1 - 0}{\hat{se}(\hat{\beta}_1)} = \frac{2.2181}{0.1369} = 16.2$$
+ Under the null, this comes from a T distribution with $n - 2 = 154$ degrees of freedom.   So our p-value is the area outside of -16.2 and 16.2 on the $T_{n-2}$ curve. </span>
+
+```{r, class.source="soln", class.output="soln"}
+2*pt(test_stat, df = n-2, lower.tail = F)
+```
+
+<span style="color:#5858d0"> We have a very small p-value which is much smaller than $\alpha = 0.02$.  We reject the null since we have strong evidence that the true slope is nonzero. </span>
+
+(b) How do the results of the hypothesis test in problem 3 relate to the results of the confidence interval in problem 2?
+
+<span style="color:#5858d0"> Both methods return a significant result regarding the value 0.  We rejected the null value of 0 at the 2% level.  If we look at the 98% confidence interval, we see that 0 is not contained within the interval.  Both methods show that our data is not consistent with $\beta_1 = 0$. </span>
+
+
+# Problem 4
+
+26 measurements of outside low temperature (in C) and gas consumption (in 1000's of cubic feet) are taken for a house in England.  A linear model was fit to relate gas consumption to outside temperature.  Use the coefficient table of the lm summary output given in `hw11p4.png` to answer the following questions.
+
+(a) Complete a test at the 5% level to determine whether the slope of the linear relationship between gas consumption and temperature is less than -0.3.  Include hypotheses, test statistic, p-value, and a conclusion.
+
+<span style="color:#5858d0"> We have hypotheses
+$$H_0: \beta_1 = -0.3 \quad \text{versus} \quad H_A: \beta_1 < -0.3$$
+and we can calculate a T test statistic based on the estimated slope and its standard error given in the summary table.
+</span>
+
+```{r, class.source="soln", class.output="soln"}
+est_slope <- -0.39324
+se <- 0.01959
+
+test_stat <- (est_slope - (-0.3)) / se
+test_stat
+```
+
+<span style="color:#5858d0"> The p-value for this test is the area below our test statistic on the T with $n - 2 = 24$ degrees of freedom. </span>
+
+```{r, class.source="soln", class.output="soln"}
+n <- 26
+
+pt(test_stat, df = n-2)
+```
+
+<span style="color:#5858d0"> We have a small p-value less than the significance level of 0.05, so we reject the null hypothesis.  We have evidence that the true slope is less than -0.3. </span>
+
+(b) The 11th point in the data has a residual value of 0.17.  Does the linear model overestimate or underestimate the gas consumption on that day?
+
+<span style="color:#5858d0"> A positive residual ($y_i - \hat{y}_i$) means that the observed point lies above the line, so the linear model underestimates the actual gas consumption on that day. </span>
+
+(c) The outside low temperature on the day when the 11th point of data was recorded was 5.4 degrees C.  How much gas was actually consumed on this day?
+
+<span style="color:#5858d0"> According to the estimated slope/intercept given in the summary output, the predicted gas consumption is 
+$$\hat{y}_i \;=\; 6.85383 - 0.39324(5.4) \;=\; 4.73$$
+Since the residual 0.17 is the difference between the observed and fitted $y$, we can solve for the observed $y$.
+$$0.17 \;=\; y_i - 4.73 \quad \rightarrow \quad y_i \;=\; 4.73 + 0.17 \;=\; 4.9$$
+</span>
+
+(d) We know that the standard deviation of the temperature measurements are larger than the standard deviation of the gas consumption measurements.  Which of the four statements is true about the correlation between temperature and gas consumption, and why?
+
+- The correlation is between -1 and -0.393.
+- The correlation is between -0.393 and 0.
+- The correlation is between 0 and 0.393.
+- The correlation is between 0.393 and 1.
+
+<span style="color:#5858d0"> The third and fourth statements must be false, since we know that a negative linear model slope means the correlation between x and y are negative. From the formula for slope, we have
+$$-0.393 \;=\; r\Big(\frac{s_Y}{s_X}\Big) \quad \rightarrow \quad r \;=\; \Big(\frac{s_X}{s_Y}\Big)(-0.393)$$
+From the statement of the problem, $\frac{s_X}{s_Y}$ is a number greater than 1, so the correlation must have a larger magnitude than the slope of -0.393.  The first statement is correct.
+</span>
+
+
+# Problem 5
+
+Which of the following conditions lead to a smaller prediction error?  Briefly explain your chocies.
+
+- A smaller sample size vs a larger sample size
+
+<span style="color:#5858d0"> A larger sample size results in a smaller standard error.  Having more data means that our model is more reliable. </span>
+
+- A smaller value of $\sigma$ vs a larger value of $\sigma$
+
+<span style="color:#5858d0"> A smaller value of $\sigma$ results in a smaller standard error.  When the points are less spread out around the line, our linear model does a better job of prediction. </span>
+
+- Predicting closer to $\bar{x}$ vs predicting further from $\bar{x}$
+
+<span style="color:#5858d0"> Predicting closer to $\bar{x}$ results in a smaller standard error.  Our linear model is more reliable in the center of our original data. </span>
+
+- A smaller variance vs a larger variance in the original $X$ data
+
+<span style="color:#5858d0"> A larger variance in the original $X$ data results in a smaller standard error.  If our original model covers a wider "range" of possible x values, it does a better job of prediction. </span>
+
+
+# Problem 6
+
+Consider predicting the happiness index of a country with 1 GDP per capita.
+
+(a) Build a *prediction interval* for the happiness index of a new country with $x^* = 1$ GDP per capita.  You can use the `predict()` function.
+
+```{r, class.source="soln", class.output="soln"}
+predict(happiness_mod, newdata = tibble(GDP.per.capita = 1),
+        interval = "prediction")
+```
+
+
+(b) Build a *confidence interval* for the height of the regression line at $x^* = 1$.  You can use the `predict()` function.
+
+```{r, class.source="soln", class.output="soln"}
+predict(happiness_mod, newdata = tibble(GDP.per.capita = 1),
+        interval = "confidence")
+```
+
+(c) Explain the difference in how the prediction and confidence intervals are calculated.
+
+<span style="color:#5858d0"> A prediction interval predicts the y value for a single new observation.  A confidence interval predicts the *average* y value for a certain value of x, which results in a narrower interval.  The standard error of the prediction interval for $\hat{y}|x^* $ is larger than the standard error of the confidence interval for $E(\hat{y}|x^*)$ </span>
+
+
+# Problem 7
+
+The file `dc_weather.csv` contains weather data for Washington, DC from August 2018 to August 2024. 
+
+```{r}
+weather <- read_csv("../../data/dc_weather.csv")
+```
+
+(a) Make a plot of minimum temperature (in C) on the x axis versus dew point on the y axis.  Comment on the shape of the data.
+
+```{r, class.source="soln", class.output="soln"}
+ggplot(weather, aes(x = tempmin, y = dew)) + 
+  geom_point() +
+  labs(x = "Minimum Temperature (C)", y = "Dew Point")
+```
+
+<span style="color:#5858d0"> There appears to be a strong, positive linear relationship between the two variables. </span>
+
+(b) Use R's `lm()` to fit a linear model for dew point in terms of minimum temperature.  Perform a residual analysis to assess the validity of this model.
+
+```{r, class.source="soln", class.output="soln"}
+weather_mod <- lm(dew ~ tempmin, data = weather)
+
+# Build residual plot
+weather %>%
+  mutate(residuals = resid(weather_mod)) %>%
+  ggplot(aes(x = tempmin, y = residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0)
+```
+
+<span style="color:#5858d0"> The residual plot suggests that X and Y have a linear relationship, and the residuals are approximately normal around 0.  There may be a few concerns with constant variance for higher values of minimum temperature. </span>
+
+
+# Problem 8
+
+We want to test whether the slope of the linear relationship between minimum temperature and dew point is greater than 1.  Write hypotheses corresponding to the question of interest and carry out the test on the weather data.  Make a conclusion with $\alpha = 0.05$.
+
+<span style="color:#5858d0"> The wording "greater than 1" suggests a pair of one-sided hypotheses.  The alternative represents the true slope being greater than 1.  This gives hypotheses
+$$H_0: \beta_1 = 1 \quad \text{versus} \quad H_A: \beta_1 > 1$$
+</span>
+
+```{r, class.source="soln", class.output="soln"}
+n <- nrow(weather)
+pt_est <- summary(weather_mod)$coefficients[2, 1]
+se <- summary(weather_mod)$coefficients[2, 2]
+
+test_stat <- (pt_est - 1) / se
+```
+
+<span style="color:#5858d0"> The test statistic is 
+$$\frac{\hat{\beta}_1 - 1}{\hat{se}(\hat{\beta}_1)} = \frac{0.062498}{0.005787} = 10.8$$
+Under the null, this comes from a T distribution with $n - 2 = 3317$ degrees of freedom.  Since our alternative suggests we are looking for a result in the positive direction, our p-value is the area on a $T_{3317}$ curve *above* 10.8. </span>
+
+```{r, class.source="soln", class.output="soln"}
+pt(test_stat, df = n-2, lower.tail = F)
+```
+
+<span style="color:#5858d0"> Our p-value is virtually 0, so we reject the null.  We have evidence that the linear relationship between dew point and minimum temperature is greater than 1. </span>
+
+
+
+
+
+
+
+
+
+
+
